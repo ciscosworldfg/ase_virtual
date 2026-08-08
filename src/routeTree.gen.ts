@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DiyRouteImport } from './routes/diy'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as ScenariosRouteImport } from './routes/scenarios'
+import { Route as ScenarioScenarioIdRouteImport } from './routes/scenario.$scenarioId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiyRoute = DiyRouteImport.update({
+  id: '/diy',
+  path: '/diy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenariosRoute = ScenariosRouteImport.update({
+  id: '/scenarios',
+  path: '/scenarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenarioScenarioIdRoute = ScenarioScenarioIdRouteImport.update({
+  id: '/scenario/$scenarioId',
+  path: '/scenario/$scenarioId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diy': typeof DiyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/scenarios': typeof ScenariosRoute
+  '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diy': typeof DiyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/scenarios': typeof ScenariosRoute
+  '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diy': typeof DiyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/scenarios': typeof ScenariosRoute
+  '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/diy'
+    | '/onboarding'
+    | '/scenarios'
+    | '/scenario/$scenarioId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/diy'
+    | '/onboarding'
+    | '/scenarios'
+    | '/scenario/$scenarioId'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/diy'
+    | '/onboarding'
+    | '/scenarios'
+    | '/scenario/$scenarioId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  DiyRoute: typeof DiyRoute
+  OnboardingRoute: typeof OnboardingRoute
+  ScenariosRoute: typeof ScenariosRoute
+  ScenarioScenarioIdRoute: typeof ScenarioScenarioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +117,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diy': {
+      id: '/diy'
+      path: '/diy'
+      fullPath: '/diy'
+      preLoaderRoute: typeof DiyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenarios': {
+      id: '/scenarios'
+      path: '/scenarios'
+      fullPath: '/scenarios'
+      preLoaderRoute: typeof ScenariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenario/$scenarioId': {
+      id: '/scenario/$scenarioId'
+      path: '/scenario/$scenarioId'
+      fullPath: '/scenario/$scenarioId'
+      preLoaderRoute: typeof ScenarioScenarioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  DiyRoute: DiyRoute,
+  OnboardingRoute: OnboardingRoute,
+  ScenariosRoute: ScenariosRoute,
+  ScenarioScenarioIdRoute: ScenarioScenarioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
