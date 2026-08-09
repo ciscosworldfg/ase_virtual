@@ -250,6 +250,12 @@ export interface Scenario {
   warningLights: string[];
   inspection: InspectionPoint[];
   testPoints: TestPoint[];
+  /** category-specific bench tools (transmission pressure gauge, AC manifold, …) */
+  tools?: ToolPanel[];
+  /** hide the OBD-II scan tool stage when the area does not use it */
+  hideScanTool?: boolean;
+  /** hide the DMM stage when the area does not use it */
+  hideMultimeter?: boolean;
   steps: McqStep[];
   rootCause: string;
   repair: string;
