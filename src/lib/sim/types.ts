@@ -135,6 +135,96 @@ export interface McqStep {
   principle: string;
 }
 
+/* ---------------------------------------------------------------------------
+ * Category-specific diagnostic instrumentation.
+ * Every ASE area gets its own bench tools rather than reusing the OBD-II
+ * scanner and DMM built for engine work.
+ * ------------------------------------------------------------------------- */
+
+export interface GaugeReading {
+  label: string;
+  measured: string;
+  spec: string;
+  abnormal: boolean;
+  note?: string;
+}
+
+export interface GaugeSet {
+  id: string;
+  label: string;
+  /** operating condition the readings were taken under */
+  condition?: string;
+  readings: GaugeReading[];
+}
+
+export type ToolPanel =
+  | {
+      kind: "fluid";
+      id: string;
+      title: string;
+      hint: string;
+      samples: {
+        id: string;
+        label: string;
+        /** css color for the sample swatch */
+        color: string;
+        condition: string;
+        smell: string;
+        verdict: string;
+        abnormal: boolean;
+      }[];
+    }
+  | {
+      kind: "gauge";
+      id: string;
+      title: string;
+      hint: string;
+      sets: GaugeSet[];
+    }
+  | {
+      kind: "codes";
+      id: string;
+      title: string;
+      hint: string;
+      module: string;
+      codes: { code: string; description: string; status: string; freeze?: string }[];
+    }
+  | {
+      kind: "network";
+      id: string;
+      title: string;
+      hint: string;
+      modules: {
+        name: string;
+        address: string;
+        status: "ok" | "no-response" | "intermittent";
+        note: string;
+      }[];
+      busNote?: string;
+    }
+  | {
+      kind: "actuator";
+      id: string;
+      title: string;
+      hint: string;
+      actuators: {
+        id: string;
+        name: string;
+        command: string;
+        expected: string;
+        actual: string;
+        abnormal: boolean;
+      }[];
+    }
+  | {
+      kind: "vibration";
+      id: string;
+      title: string;
+      hint: string;
+      analysis: string;
+      samples: { speed: number; amplitude: number; note: string }[];
+    };
+
 export interface Scenario {
   id: string;
   title: string;
@@ -160,6 +250,12 @@ export interface Scenario {
   warningLights: string[];
   inspection: InspectionPoint[];
   testPoints: TestPoint[];
+  /** category-specific bench tools (transmission pressure gauge, AC manifold, …) */
+  tools?: ToolPanel[];
+  /** hide the OBD-II scan tool stage when the area does not use it */
+  hideScanTool?: boolean;
+  /** hide the DMM stage when the area does not use it */
+  hideMultimeter?: boolean;
   steps: McqStep[];
   rootCause: string;
   repair: string;
