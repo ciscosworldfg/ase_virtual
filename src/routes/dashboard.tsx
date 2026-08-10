@@ -59,6 +59,11 @@ function Dashboard() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {ASE_CATEGORIES.map((c) => {
               const score = s.byCategory[c.id] ?? 0;
+              const total = SCENARIOS.filter((sc) => sc.category === c.id).length;
+              const completed = new Set(
+                profile.attempts.filter((a) => a.category === c.id).map((a) => a.scenarioId),
+              ).size;
+              const pct = total ? Math.round((completed / total) * 100) : 0;
               return (
                 <div key={c.id} className="panel-instrument p-4">
                   <div className="flex items-baseline justify-between">
@@ -69,10 +74,20 @@ function Dashboard() {
                   <div className="mt-3 h-1.5 rounded-full bg-muted">
                     <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />
                   </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="label-tech">
+                      {completed}/{total} scenarios
+                    </span>
+                    <span className="readout text-xs text-muted-foreground">{pct}% complete</span>
+                  </div>
+                  <div className="mt-1.5 h-1 rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-signal" style={{ width: `${pct}%` }} />
+                  </div>
                 </div>
               );
             })}
           </div>
+
         </section>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-2">

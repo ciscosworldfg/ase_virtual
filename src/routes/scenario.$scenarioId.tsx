@@ -7,6 +7,7 @@ import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
+import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
 import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
 import { scenarioById } from "@/lib/sim/scenarios";
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
   component: Session,
 });
 
-const STAGES = [
+const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
   { id: "inspect", label: "Garage" },
@@ -48,7 +49,8 @@ const STAGES = [
   { id: "diagnose", label: "Diagnosis" },
 ] as const;
 
-type Stage = (typeof STAGES)[number]["id"];
+type Stage = string;
+
 
 function Session() {
   const { scenarioId } = Route.useParams();
@@ -56,7 +58,21 @@ function Session() {
   const vehicle = vehicleById(scenario.vehicleId)!;
   const { addAttempt } = useProfile();
 
+  const STAGES = useMemo(() => {
+    const toolStages = (scenario.tools ?? []).map((t) => ({ id: `tool:${t.id}`, label: t.title }));
+    return [
+      ...BASE_STAGES.filter((s) => {
+        if (s.id === "scan" && scenario.hideScanTool) return false;
+        if (s.id === "meter" && scenario.hideMultimeter) return false;
+        return s.id !== "diagnose";
+      }).map((s) => ({ id: s.id as string, label: s.label as string })),
+      ...toolStages,
+      { id: "diagnose", label: "Diagnosis" },
+    ];
+  }, [scenario]);
+
   const [stage, setStage] = useState<Stage>("interview");
+
   const [state, setState] = useState<SimState>(() => initialState(vehicle));
   const [toolsUsed, setToolsUsed] = useState<string[]>([]);
   const [firstTry, setFirstTry] = useState(0);
@@ -82,14 +98,22 @@ function Session() {
 
   const finish = () => {
     const seconds = Math.round((Date.now() - startedAt) / 1000);
+    // Areas that do not use the OBD-II scanner or DMM should not be penalised
+    // for skipping stages that were never offered.
+    const scoringTools = [
+      ...toolsUsed,
+      ...(scenario.hideScanTool ? ["scan"] : []),
+      ...(scenario.hideMultimeter ? ["meter"] : []),
+    ];
     const scored = scoreAttempt({
       firstTryCorrect: firstTry,
       totalSteps: scenario.steps.length,
       wrongAnswers: wrong,
-      toolsUsed,
+      toolsUsed: scoringTools,
       seconds,
       estimatedMinutes: scenario.estimatedMinutes,
     });
+
     setResult(scored);
     addAttempt({
       scenarioId: scenario.id,
@@ -204,6 +228,13 @@ function Session() {
                 onUse={useMeter}
               />
             )}
+            {(scenario.tools ?? []).map(
+              (t) =>
+                stage === `tool:${t.id}` && (
+                  <ToolBench key={t.id} tool={t} onUse={() => markUsed(`tool:${t.id}`)} />
+                ),
+            )}
+
             {stage === "diagnose" &&
               (result ? (
                 <SessionResult scenario={scenario} result={result} />
