@@ -53,11 +53,17 @@ function ScenarioLibrary() {
             value={cat}
             onChange={setCat}
             options={[
-              { id: "all", label: "All areas" },
-              ...ASE_CATEGORIES.map((c) => ({ id: c.id, label: `${c.id} · ${c.name}` })),
+              { id: "all", label: `All areas (${SCENARIOS.length})` },
+              ...ASE_CATEGORIES.filter((c) => SCENARIOS.some((s) => s.category === c.id)).map(
+                (c) => ({
+                  id: c.id,
+                  label: `${c.id} · ${c.name} (${SCENARIOS.filter((s) => s.category === c.id).length})`,
+                }),
+              ),
             ]}
           />
         </div>
+
         <div className="mt-3 flex flex-wrap gap-2">
           <FilterGroup
             value={diff}
