@@ -39,7 +39,7 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
   component: Session,
 });
 
-const STAGES = [
+const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
   { id: "inspect", label: "Garage" },
@@ -48,7 +48,8 @@ const STAGES = [
   { id: "diagnose", label: "Diagnosis" },
 ] as const;
 
-type Stage = (typeof STAGES)[number]["id"];
+type Stage = string;
+
 
 function Session() {
   const { scenarioId } = Route.useParams();
