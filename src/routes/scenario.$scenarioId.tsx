@@ -227,6 +227,13 @@ function Session() {
                 onUse={useMeter}
               />
             )}
+            {(scenario.tools ?? []).map(
+              (t) =>
+                stage === `tool:${t.id}` && (
+                  <ToolBench key={t.id} tool={t} onUse={() => markUsed(`tool:${t.id}`)} />
+                ),
+            )}
+
             {stage === "diagnose" &&
               (result ? (
                 <SessionResult scenario={scenario} result={result} />
