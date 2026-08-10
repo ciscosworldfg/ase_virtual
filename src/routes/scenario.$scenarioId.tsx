@@ -57,7 +57,21 @@ function Session() {
   const vehicle = vehicleById(scenario.vehicleId)!;
   const { addAttempt } = useProfile();
 
+  const STAGES = useMemo(() => {
+    const toolStages = (scenario.tools ?? []).map((t) => ({ id: `tool:${t.id}`, label: t.title }));
+    return [
+      ...BASE_STAGES.filter((s) => {
+        if (s.id === "scan" && scenario.hideScanTool) return false;
+        if (s.id === "meter" && scenario.hideMultimeter) return false;
+        return s.id !== "diagnose";
+      }).map((s) => ({ id: s.id as string, label: s.label as string })),
+      ...toolStages,
+      { id: "diagnose", label: "Diagnosis" },
+    ];
+  }, [scenario]);
+
   const [stage, setStage] = useState<Stage>("interview");
+
   const [state, setState] = useState<SimState>(() => initialState(vehicle));
   const [toolsUsed, setToolsUsed] = useState<string[]>([]);
   const [firstTry, setFirstTry] = useState(0);
