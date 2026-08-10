@@ -1,6 +1,8 @@
 import type { Scenario } from "./types";
+import { CHASSIS_SCENARIOS } from "./scenarios-chassis";
+import { SYSTEMS_SCENARIOS } from "./scenarios-systems";
 
-export const SCENARIOS: Scenario[] = [
+const ENGINE_SCENARIOS: Scenario[] = [
   {
     id: "accord-vacuum-leak",
     title: "Rough Idle & Check Engine Light",
@@ -471,6 +473,12 @@ export const SCENARIOS: Scenario[] = [
     lesson:
       "Charging complaints are circuit problems as often as they are component problems. Always measure voltage drop on both the positive and ground legs under load before condemning an alternator. Available voltage at the battery is what matters, not what the alternator makes at its own case.",
   },
+];
+
+export const SCENARIOS: Scenario[] = [
+  ...ENGINE_SCENARIOS,
+  ...CHASSIS_SCENARIOS,
+  ...SYSTEMS_SCENARIOS,
 ];
 
 export const scenarioById = (id: string) => SCENARIOS.find((s) => s.id === id);

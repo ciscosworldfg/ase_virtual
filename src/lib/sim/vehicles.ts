@@ -1,6 +1,7 @@
 import type { Vehicle } from "./types";
+import { EXTRA_VEHICLES } from "./vehicles-extended";
 
-export const VEHICLES: Vehicle[] = [
+const BASE_VEHICLES: Vehicle[] = [
   {
     id: "accord-2018",
     year: 2018,
@@ -121,6 +122,8 @@ export const VEHICLES: Vehicle[] = [
     idleRpm: 0,
   },
 ];
+
+export const VEHICLES: Vehicle[] = [...BASE_VEHICLES, ...EXTRA_VEHICLES];
 
 export const vehicleById = (id: string) => VEHICLES.find((v) => v.id === id);
 
