@@ -7,6 +7,7 @@ import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
+import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
 import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
 import { scenarioById } from "@/lib/sim/scenarios";
