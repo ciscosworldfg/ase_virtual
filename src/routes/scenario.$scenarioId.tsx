@@ -97,14 +97,22 @@ function Session() {
 
   const finish = () => {
     const seconds = Math.round((Date.now() - startedAt) / 1000);
+    // Areas that do not use the OBD-II scanner or DMM should not be penalised
+    // for skipping stages that were never offered.
+    const scoringTools = [
+      ...toolsUsed,
+      ...(scenario.hideScanTool ? ["scan"] : []),
+      ...(scenario.hideMultimeter ? ["meter"] : []),
+    ];
     const scored = scoreAttempt({
       firstTryCorrect: firstTry,
       totalSteps: scenario.steps.length,
       wrongAnswers: wrong,
-      toolsUsed,
+      toolsUsed: scoringTools,
       seconds,
       estimatedMinutes: scenario.estimatedMinutes,
     });
+
     setResult(scored);
     addAttempt({
       scenarioId: scenario.id,
