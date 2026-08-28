@@ -42,17 +42,19 @@ export function TestDrive({
       engine.stop();
       audio.current = null;
     };
-  }, [audioOn]);
+  }, [audioOn, vehicle.layout]);
 
   useEffect(() => {
     audio.current?.update({
       rpm: state.rpm,
       throttle: state.throttle,
       load: data.load,
+      speed: state.speed,
+      cylinders: cylinderCount(vehicle.layout),
       running: state.running,
       profileId: scenario.audioProfile.id,
     });
-  }, [state, data.load, scenario.audioProfile.id]);
+  }, [state, data.load, scenario.audioProfile.id, vehicle.layout]);
 
   useEffect(() => {
     if (!state.running) return;
