@@ -36,7 +36,7 @@ export function TestDrive({
       return;
     }
     const engine = new EngineAudio();
-    engine.start();
+    engine.start(cylinderCount(vehicle.layout));
     audio.current = engine;
     return () => {
       engine.stop();
