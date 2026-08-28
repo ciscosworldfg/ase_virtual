@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Gauge, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { Cluster } from "./Cluster";
-import { EngineAudio } from "@/lib/sim/audio";
+import { EngineAudio, cylinderCount } from "@/lib/sim/audio";
 import { computeLiveData, initialState, stepSim, type SimState } from "@/lib/sim/engine";
 import type { Scenario, Vehicle } from "@/lib/sim/types";
 
