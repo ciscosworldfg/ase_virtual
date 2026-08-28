@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Gauge, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { Cluster } from "./Cluster";
-import { EngineAudio } from "@/lib/sim/audio";
+import { EngineAudio, cylinderCount } from "@/lib/sim/audio";
 import { computeLiveData, initialState, stepSim, type SimState } from "@/lib/sim/engine";
 import type { Scenario, Vehicle } from "@/lib/sim/types";
 
@@ -36,23 +36,25 @@ export function TestDrive({
       return;
     }
     const engine = new EngineAudio();
-    engine.start();
+    engine.start(cylinderCount(vehicle.layout));
     audio.current = engine;
     return () => {
       engine.stop();
       audio.current = null;
     };
-  }, [audioOn]);
+  }, [audioOn, vehicle.layout]);
 
   useEffect(() => {
     audio.current?.update({
       rpm: state.rpm,
       throttle: state.throttle,
       load: data.load,
+      speed: state.speed,
+      cylinders: cylinderCount(vehicle.layout),
       running: state.running,
       profileId: scenario.audioProfile.id,
     });
-  }, [state, data.load, scenario.audioProfile.id]);
+  }, [state, data.load, scenario.audioProfile.id, vehicle.layout]);
 
   useEffect(() => {
     if (!state.running) return;

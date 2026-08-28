@@ -1,127 +1,315 @@
 /**
- * Extensible engine audio system.
+ * Engine audio system.
  *
  * IMPORTANT: every sound produced here is SYNTHESIZED with the Web Audio API.
  * These are training placeholders, not recordings of real vehicles. The
  * interface is shaped so real recorded samples can be swapped in later.
+ *
+ * The model is built the way an engine actually makes sound:
+ *   firing frequency = rpm / 60 * cylinders / 2   (4-stroke)
+ * A harmonic-rich periodic wave at that frequency gives the combustion pulse
+ * train, a half-order oscillator adds the crank-rotation beat that makes V8s
+ * lope, filtered noise supplies intake and exhaust turbulence, and separate
+ * noise beds add road and wind as speed rises. Failure profiles modulate the
+ * same signal path instead of layering unrelated tones.
  */
 
 export interface AudioParams {
   rpm: number;
   throttle: number;
   load: number;
+  speed: number;
+  cylinders: number;
   running: boolean;
   profileId: string;
+}
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+/** Harmonic weights of a combustion pulse train — steep, slightly odd-biased. */
+function buildEngineWave(ctx: AudioContext, cylinders: number) {
+  const n = 32;
+  const real = new Float32Array(n);
+  const imag = new Float32Array(n);
+  const bite = cylinders <= 4 ? 1.15 : cylinders >= 8 ? 0.8 : 0.95;
+  for (let h = 1; h < n; h++) {
+    const decay = Math.pow(h, -1.15 * bite);
+    const oddBias = h % 2 === 1 ? 1 : 0.62;
+    imag[h] = decay * oddBias;
+  }
+  return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+}
+
+function noiseBuffer(ctx: AudioContext, brown: boolean) {
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < data.length; i++) {
+    const white = Math.random() * 2 - 1;
+    if (brown) {
+      last = (last + 0.02 * white) / 1.02;
+      data[i] = last * 3.2;
+    } else {
+      data[i] = white;
+    }
+  }
+  return buffer;
 }
 
 export class EngineAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
-  private osc: OscillatorNode | null = null;
-  private sub: OscillatorNode | null = null;
-  private oscGain: GainNode | null = null;
-  private noise: AudioBufferSourceNode | null = null;
-  private noiseGain: GainNode | null = null;
+
+  private fire: OscillatorNode | null = null;
+  private fireDetune: OscillatorNode | null = null;
+  private halfOrder: OscillatorNode | null = null;
+  private fireGain: GainNode | null = null;
+  private halfGain: GainNode | null = null;
+  private bodyFilter: BiquadFilterNode | null = null;
+  private exhaustPeak: BiquadFilterNode | null = null;
+
+  private intakeGain: GainNode | null = null;
+  private intakeFilter: BiquadFilterNode | null = null;
+  private roadGain: GainNode | null = null;
+  private roadFilter: BiquadFilterNode | null = null;
+
+  private whine: OscillatorNode | null = null;
+  private whineGain: GainNode | null = null;
+
+  private modOsc: OscillatorNode | null = null;
+  private modDepth: GainNode | null = null;
+
+  private cylinders = 4;
   private started = false;
 
-  start() {
+  start(cylinders = 4) {
     if (this.started) return;
     const Ctor =
       window.AudioContext ??
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return;
     const ctx = new Ctor();
+    void ctx.resume();
+    this.cylinders = cylinders;
+
     const master = ctx.createGain();
     master.gain.value = 0.0001;
-    master.connect(ctx.destination);
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 6;
+    comp.attack.value = 0.005;
+    comp.release.value = 0.16;
+    master.connect(comp).connect(ctx.destination);
 
-    const osc = ctx.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.value = 40;
-    const oscGain = ctx.createGain();
-    oscGain.gain.value = 0.25;
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 900;
-    osc.connect(oscGain).connect(lp).connect(master);
+    /* ---------------------------------------------------------- combustion */
+    const wave = buildEngineWave(ctx, cylinders);
+    const bodyFilter = ctx.createBiquadFilter();
+    bodyFilter.type = "lowpass";
+    bodyFilter.frequency.value = 700;
+    bodyFilter.Q.value = 0.7;
 
-    const sub = ctx.createOscillator();
-    sub.type = "square";
-    sub.frequency.value = 20;
-    const subGain = ctx.createGain();
-    subGain.gain.value = 0.08;
-    sub.connect(subGain).connect(master);
+    const exhaustPeak = ctx.createBiquadFilter();
+    exhaustPeak.type = "peaking";
+    exhaustPeak.frequency.value = 96;
+    exhaustPeak.Q.value = 1.1;
+    exhaustPeak.gain.value = 8;
 
-    const buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.value = 0;
-    const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 2600;
-    noise.connect(noiseGain).connect(bp).connect(master);
+    const fireGain = ctx.createGain();
+    fireGain.gain.value = 0.34;
+    bodyFilter.connect(exhaustPeak).connect(fireGain).connect(master);
 
-    osc.start();
-    sub.start();
-    noise.start();
+    const fire = ctx.createOscillator();
+    fire.setPeriodicWave(wave);
+    fire.frequency.value = 40;
+    fire.connect(bodyFilter);
 
-    this.ctx = ctx;
-    this.master = master;
-    this.osc = osc;
-    this.sub = sub;
-    this.oscGain = oscGain;
-    this.noise = noise;
-    this.noiseGain = noiseGain;
-    this.started = true;
+    const fireDetune = ctx.createOscillator();
+    fireDetune.setPeriodicWave(wave);
+    fireDetune.frequency.value = 40;
+    fireDetune.detune.value = 9;
+    const detuneGain = ctx.createGain();
+    detuneGain.gain.value = 0.45;
+    fireDetune.connect(detuneGain).connect(bodyFilter);
+
+    // half-engine-order: one crank revolution, gives the lope/rumble
+    const halfOrder = ctx.createOscillator();
+    halfOrder.type = "sine";
+    halfOrder.frequency.value = 20;
+    const halfGain = ctx.createGain();
+    halfGain.gain.value = 0.12;
+    halfOrder.connect(halfGain).connect(master);
+
+    /* -------------------------------------------------------------- intake */
+    const intake = ctx.createBufferSource();
+    intake.buffer = noiseBuffer(ctx, false);
+    intake.loop = true;
+    const intakeFilter = ctx.createBiquadFilter();
+    intakeFilter.type = "bandpass";
+    intakeFilter.frequency.value = 1400;
+    intakeFilter.Q.value = 0.9;
+    const intakeGain = ctx.createGain();
+    intakeGain.gain.value = 0;
+    intake.connect(intakeFilter).connect(intakeGain).connect(master);
+
+    /* ---------------------------------------------------------- road/wind */
+    const road = ctx.createBufferSource();
+    road.buffer = noiseBuffer(ctx, true);
+    road.loop = true;
+    const roadFilter = ctx.createBiquadFilter();
+    roadFilter.type = "lowpass";
+    roadFilter.frequency.value = 500;
+    const roadGain = ctx.createGain();
+    roadGain.gain.value = 0;
+    road.connect(roadFilter).connect(roadGain).connect(master);
+
+    /* -------------------------------------------------- accessory bearing */
+    const whine = ctx.createOscillator();
+    whine.type = "triangle";
+    whine.frequency.value = 900;
+    const whineGain = ctx.createGain();
+    whineGain.gain.value = 0;
+    whine.connect(whineGain).connect(master);
+
+    /* ------------------------------------ amplitude modulation (roughness) */
+    const modOsc = ctx.createOscillator();
+    modOsc.type = "sine";
+    modOsc.frequency.value = 8;
+    const modDepth = ctx.createGain();
+    modDepth.gain.value = 0;
+    modOsc.connect(modDepth).connect(fireGain.gain);
+
+    fire.start();
+    fireDetune.start();
+    halfOrder.start();
+    intake.start();
+    road.start();
+    whine.start();
+    modOsc.start();
+
+    Object.assign(this, {
+      ctx,
+      master,
+      fire,
+      fireDetune,
+      halfOrder,
+      fireGain,
+      halfGain,
+      bodyFilter,
+      exhaustPeak,
+      intakeGain,
+      intakeFilter,
+      roadGain,
+      roadFilter,
+      whine,
+      whineGain,
+      modOsc,
+      modDepth,
+      started: true,
+    });
   }
 
   update(p: AudioParams) {
-    if (!this.ctx || !this.master || !this.osc || !this.sub || !this.oscGain || !this.noiseGain)
-      return;
-    const t = this.ctx.currentTime;
-    const target = p.running ? 0.14 + (p.throttle / 100) * 0.12 : 0.0001;
-    this.master.gain.setTargetAtTime(target, t, 0.12);
+    const ctx = this.ctx;
+    if (!ctx || !this.master || !this.fire || !this.fireDetune || !this.halfOrder) return;
+    const t = ctx.currentTime;
+    const cyl = Math.max(2, p.cylinders || this.cylinders);
+    const throttle = p.throttle / 100;
+    const load = clamp(p.load / 100, 0, 1);
 
-    const base = Math.max(18, (p.rpm / 60) * 2);
-    this.osc.frequency.setTargetAtTime(base, t, 0.08);
-    this.sub.frequency.setTargetAtTime(base / 2, t, 0.08);
+    // 4-stroke firing frequency
+    const fireHz = clamp((p.rpm / 60) * (cyl / 2), 14, 420);
+    this.fire.frequency.setTargetAtTime(fireHz, t, 0.05);
+    this.fireDetune.frequency.setTargetAtTime(fireHz, t, 0.05);
+    this.halfOrder.frequency.setTargetAtTime(clamp(p.rpm / 120, 8, 120), t, 0.06);
 
-    // failure-driven texture
-    const hiss =
-      p.profileId === "lean-rough-idle" ? 0.05 + (1 - p.throttle / 100) * 0.05 : 0;
-    const misfireTexture =
-      p.profileId === "load-misfire" ? (p.load / 100) * 0.09 : 0;
-    const whine = p.profileId === "alt-bearing-whine" ? 0.03 : 0;
-    const brake = p.profileId === "brake-pulsation" ? 0.02 : 0;
-    this.noiseGain.gain.setTargetAtTime(
-      p.running ? hiss + misfireTexture + whine + brake : 0,
+    // overall level: idle is quiet, throttle and load open it up
+    const level = p.running ? 0.1 + throttle * 0.16 + load * 0.05 : 0.0001;
+    this.master.gain.setTargetAtTime(level, t, 0.1);
+
+    // the airbox/exhaust brighten as the throttle plate opens
+    this.bodyFilter?.frequency.setTargetAtTime(
+      520 + throttle * 2600 + (p.rpm / 1000) * 240,
       t,
-      0.15,
+      0.09,
+    );
+    this.exhaustPeak?.gain.setTargetAtTime(6 + throttle * 5, t, 0.12);
+    this.halfGain?.gain.setTargetAtTime(p.running ? 0.1 + (1 - throttle) * 0.05 : 0, t, 0.1);
+
+    // intake roar tracks rpm and throttle
+    this.intakeFilter?.frequency.setTargetAtTime(900 + (p.rpm / 1000) * 700, t, 0.1);
+    const leanHiss = p.profileId === "lean-rough-idle" ? 0.045 * (1 - throttle) : 0;
+    const vacuumHiss = p.profileId === "vacuum-leak" ? 0.05 * (1 - throttle) : 0;
+    this.intakeGain?.gain.setTargetAtTime(
+      p.running ? 0.012 + throttle * 0.055 + leanHiss + vacuumHiss : 0,
+      t,
+      0.12,
     );
 
-    // rough combustion modulation
-    this.oscGain.gain.setTargetAtTime(
-      p.profileId === "lean-rough-idle" && p.throttle < 10 ? 0.16 : 0.25,
-      t,
-      0.1,
-    );
+    // tire and wind noise
+    const spd = clamp(p.speed / 140, 0, 1);
+    this.roadFilter?.frequency.setTargetAtTime(320 + spd * 1400, t, 0.15);
+    this.roadGain?.gain.setTargetAtTime(spd * 0.09, t, 0.15);
+
+    // accessory / bearing tones
+    const bearing = p.profileId === "alt-bearing-whine" ? 0.02 + load * 0.015 : 0;
+    this.whine?.frequency.setTargetAtTime(clamp((p.rpm / 60) * 3.1 * 2.4, 200, 4200), t, 0.08);
+    this.whineGain?.gain.setTargetAtTime(p.running ? bearing : 0, t, 0.12);
+
+    // roughness / misfire: amplitude notches at a sub-firing rate
+    let modHz = 0;
+    let depth = 0;
+    if (p.profileId === "lean-rough-idle" && p.rpm < 1200) {
+      modHz = clamp(p.rpm / 60 / 2, 3, 14);
+      depth = 0.11;
+    } else if (p.profileId === "load-misfire") {
+      modHz = clamp((p.rpm / 60) * (cyl / 2) / cyl, 4, 30);
+      depth = 0.05 + load * 0.16;
+    } else if (p.profileId === "trans-flare") {
+      modHz = 1.4;
+      depth = 0.04;
+    } else if (p.profileId === "brake-pulsation") {
+      modHz = clamp(p.speed / 12, 1, 18);
+      depth = 0.05;
+    } else if (p.profileId === "driveline-vibration") {
+      modHz = clamp(p.speed / 6, 2, 40);
+      depth = 0.06;
+    }
+    if (modHz > 0) this.modOsc?.frequency.setTargetAtTime(modHz, t, 0.08);
+    this.modDepth?.gain.setTargetAtTime(p.running ? depth : 0, t, 0.12);
   }
 
   stop() {
-    if (!this.ctx) return;
+    const ctx = this.ctx;
+    if (!ctx) return;
     try {
-      this.osc?.stop();
-      this.sub?.stop();
-      this.noise?.stop();
-      void this.ctx.close();
+      this.master?.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05);
+      [this.fire, this.fireDetune, this.halfOrder, this.whine, this.modOsc].forEach((o) =>
+        o?.stop(ctx.currentTime + 0.2),
+      );
+      window.setTimeout(() => void ctx.close(), 300);
     } catch {
       /* already closed */
     }
     this.ctx = null;
     this.started = false;
   }
+}
+
+/** Cylinder count implied by an engine layout, for the firing-order model. */
+export function cylinderCount(layout: string): number {
+  const map: Record<string, number> = {
+    I3: 3,
+    I4: 4,
+    I5: 5,
+    I6: 6,
+    V6: 6,
+    V8: 8,
+    V10: 10,
+    V12: 12,
+    Rotary: 2,
+    Hybrid: 4,
+    PHEV: 4,
+    EV: 0,
+  };
+  return map[layout] ?? 4;
 }
