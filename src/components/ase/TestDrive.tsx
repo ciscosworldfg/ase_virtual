@@ -176,11 +176,47 @@ export function TestDrive({
             </div>
           </div>
 
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-sm border border-border bg-panel px-3 py-2">
+              <span className="label-tech">Gear / driveline</span>
+              <div className="mt-1 flex items-center gap-3">
+                <span className="readout text-lg text-primary">
+                  {state.running ? data.gear : "N"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {data.shifting
+                    ? "Shifting"
+                    : data.slip > 0.6
+                      ? "Converter slipping"
+                      : "Locked"}{" "}
+                  · {data.drivelineHz} Hz propshaft
+                </span>
+              </div>
+            </div>
+            {perspective === "exterior" && (
+              <div className="rounded-sm border border-border bg-panel px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="label-tech">Listening distance</span>
+                  <span className="readout text-xs text-primary">{distance} m</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={30}
+                  value={distance}
+                  onChange={(e) => setDistance(Number(e.target.value))}
+                  className="mt-2 w-full accent-[var(--primary)]"
+                />
+              </div>
+            )}
+          </div>
+
           <p className="mt-4 rounded-sm border border-border bg-panel px-3 py-2 text-xs text-muted-foreground">
             <Gauge className="mr-1.5 inline h-3.5 w-3.5 text-signal" />
             Audio profile: <strong>{scenario.audioProfile.label}</strong> —{" "}
             {scenario.audioProfile.description}
           </p>
+
         </div>
       </div>
 
