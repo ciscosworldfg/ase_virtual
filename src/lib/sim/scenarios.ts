@@ -1,6 +1,7 @@
 import type { Scenario } from "./types";
 import { CHASSIS_SCENARIOS } from "./scenarios-chassis";
 import { SYSTEMS_SCENARIOS } from "./scenarios-systems";
+import { EXTRA_SCENARIOS } from "./scenarios-extra";
 
 const ENGINE_SCENARIOS: Scenario[] = [
   {
@@ -479,6 +480,7 @@ export const SCENARIOS: Scenario[] = [
   ...ENGINE_SCENARIOS,
   ...CHASSIS_SCENARIOS,
   ...SYSTEMS_SCENARIOS,
+  ...EXTRA_SCENARIOS,
 ];
 
 export const scenarioById = (id: string) => SCENARIOS.find((s) => s.id === id);

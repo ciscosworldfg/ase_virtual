@@ -19,6 +19,8 @@ export function TestDrive({
   onUse: () => void;
 }) {
   const [audioOn, setAudioOn] = useState(false);
+  const [perspective, setPerspective] = useState<"cabin" | "exterior">("cabin");
+  const [distance, setDistance] = useState(6);
   const audio = useRef<EngineAudio | null>(null);
   const data = useMemo(
     () => computeLiveData(state, vehicle, scenario.failure),
@@ -53,8 +55,25 @@ export function TestDrive({
       cylinders: cylinderCount(vehicle.layout),
       running: state.running,
       profileId: scenario.audioProfile.id,
+      gear: data.gear,
+      shifting: data.shifting,
+      slip: data.slip,
+      drivelineHz: data.drivelineHz,
+      perspective,
+      distance,
     });
-  }, [state, data.load, scenario.audioProfile.id, vehicle.layout]);
+  }, [
+    state,
+    data.load,
+    data.gear,
+    data.shifting,
+    data.slip,
+    data.drivelineHz,
+    scenario.audioProfile.id,
+    vehicle.layout,
+    perspective,
+    distance,
+  ]);
 
   useEffect(() => {
     if (!state.running) return;
@@ -74,14 +93,32 @@ export function TestDrive({
           <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
             Virtual test drive
           </span>
-          <button
-            onClick={() => setAudioOn((a) => !a)}
-            className="flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
-          >
-            {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            {audioOn ? "Audio on" : "Audio off"}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex overflow-hidden rounded-sm border border-border text-xs">
+              {(["cabin", "exterior"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPerspective(p)}
+                  className={`px-2.5 py-1 capitalize ${
+                    perspective === p
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setAudioOn((a) => !a)}
+              className="flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+            >
+              {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {audioOn ? "Audio on" : "Audio off"}
+            </button>
+          </div>
         </div>
+
 
         <Road speed={state.speed} running={state.running} />
 
@@ -139,11 +176,47 @@ export function TestDrive({
             </div>
           </div>
 
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-sm border border-border bg-panel px-3 py-2">
+              <span className="label-tech">Gear / driveline</span>
+              <div className="mt-1 flex items-center gap-3">
+                <span className="readout text-lg text-primary">
+                  {state.running ? data.gear : "N"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {data.shifting
+                    ? "Shifting"
+                    : data.slip > 0.6
+                      ? "Converter slipping"
+                      : "Locked"}{" "}
+                  · {data.drivelineHz} Hz propshaft
+                </span>
+              </div>
+            </div>
+            {perspective === "exterior" && (
+              <div className="rounded-sm border border-border bg-panel px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="label-tech">Listening distance</span>
+                  <span className="readout text-xs text-primary">{distance} m</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={30}
+                  value={distance}
+                  onChange={(e) => setDistance(Number(e.target.value))}
+                  className="mt-2 w-full accent-[var(--primary)]"
+                />
+              </div>
+            )}
+          </div>
+
           <p className="mt-4 rounded-sm border border-border bg-panel px-3 py-2 text-xs text-muted-foreground">
             <Gauge className="mr-1.5 inline h-3.5 w-3.5 text-signal" />
             Audio profile: <strong>{scenario.audioProfile.label}</strong> —{" "}
             {scenario.audioProfile.description}
           </p>
+
         </div>
       </div>
 
