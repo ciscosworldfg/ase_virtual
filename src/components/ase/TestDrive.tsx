@@ -19,6 +19,8 @@ export function TestDrive({
   onUse: () => void;
 }) {
   const [audioOn, setAudioOn] = useState(false);
+  const [perspective, setPerspective] = useState<"cabin" | "exterior">("cabin");
+  const [distance, setDistance] = useState(6);
   const audio = useRef<EngineAudio | null>(null);
   const data = useMemo(
     () => computeLiveData(state, vehicle, scenario.failure),
@@ -53,8 +55,25 @@ export function TestDrive({
       cylinders: cylinderCount(vehicle.layout),
       running: state.running,
       profileId: scenario.audioProfile.id,
+      gear: data.gear,
+      shifting: data.shifting,
+      slip: data.slip,
+      drivelineHz: data.drivelineHz,
+      perspective,
+      distance,
     });
-  }, [state, data.load, scenario.audioProfile.id, vehicle.layout]);
+  }, [
+    state,
+    data.load,
+    data.gear,
+    data.shifting,
+    data.slip,
+    data.drivelineHz,
+    scenario.audioProfile.id,
+    vehicle.layout,
+    perspective,
+    distance,
+  ]);
 
   useEffect(() => {
     if (!state.running) return;
