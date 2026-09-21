@@ -93,14 +93,32 @@ export function TestDrive({
           <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
             Virtual test drive
           </span>
-          <button
-            onClick={() => setAudioOn((a) => !a)}
-            className="flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
-          >
-            {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            {audioOn ? "Audio on" : "Audio off"}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex overflow-hidden rounded-sm border border-border text-xs">
+              {(["cabin", "exterior"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPerspective(p)}
+                  className={`px-2.5 py-1 capitalize ${
+                    perspective === p
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setAudioOn((a) => !a)}
+              className="flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+            >
+              {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {audioOn ? "Audio on" : "Audio off"}
+            </button>
+          </div>
         </div>
+
 
         <Road speed={state.speed} running={state.running} />
 
