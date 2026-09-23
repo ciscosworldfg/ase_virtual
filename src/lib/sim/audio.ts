@@ -310,9 +310,13 @@ export class EngineAudio {
     const spaceHz = cabin ? 2600 : clamp(15000 - distance * 300, 2400, 15000);
     this.spaceFilter?.frequency.setTargetAtTime(spaceHz, t, 0.2);
 
-    // overall level: idle is quiet, throttle and load open it up
+    // overall level: idle is quiet, throttle and load open it up. With the
+    // engine off but the car still rolling you still hear tyres and wind.
+    const rolling = clamp(p.speed / 140, 0, 1);
     const shiftDuck = shifting ? 0.55 : 1;
-    const level = p.running ? (0.1 + throttle * 0.16 + load * 0.05) * shiftDuck * attenuation : 0.0001;
+    const level = p.running
+      ? (0.1 + throttle * 0.16 + load * 0.05) * shiftDuck * attenuation
+      : Math.max(0.0001, rolling * 0.08 * attenuation);
     this.master.gain.setTargetAtTime(level, t, shifting ? 0.04 : 0.1);
 
     // the airbox/exhaust brighten as the throttle plate opens
