@@ -102,7 +102,7 @@ export function stepSim(
   // torque is cut during the shift event, which is what produces the
   // characteristic rpm dip and exhaust "breath" between gears
   const torqueCut = shifting ? 0.12 : 1;
-  const gearPull = 1 + (GEAR_RATIOS[0] - gearRatio(state.gear)) * 0.34;
+  const gearPull = 1 + (FIRST_GEAR_RATIO - gearRatio(state.gear)) * 0.34;
   const accel = throttle * 19 * gearPull * torqueCut * (1 - powerLoss);
   const engineBrake = !state.brake && throttle < 0.05 ? 6 * (1 - state.slip) : 0;
   const drag = state.speed * 0.22 + 1.4 + (state.brake ? 62 : 0) + engineBrake;
