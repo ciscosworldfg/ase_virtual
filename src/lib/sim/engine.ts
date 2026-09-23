@@ -41,7 +41,8 @@ export interface LiveDataFrame {
 }
 
 /** Ratios for a generic 6-speed; close enough for a training model. */
-const GEAR_RATIOS = [3.42, 2.05, 1.4, 1.0, 0.8, 0.66];
+const GEAR_RATIOS: readonly number[] = [3.42, 2.05, 1.4, 1.0, 0.8, 0.66];
+const FIRST_GEAR_RATIO = 3.42;
 const FINAL_DRIVE = 3.55;
 /** engine rpm per km/h in a 1:1 gear, tuned for a ~660mm rolling diameter */
 const RPM_PER_KMH = 9.1;
