@@ -47,8 +47,8 @@ const FINAL_DRIVE = 3.55;
 /** engine rpm per km/h in a 1:1 gear, tuned for a ~660mm rolling diameter */
 const RPM_PER_KMH = 9.1;
 
-const gearRatio = (gear: number) =>
-  GEAR_RATIOS[Math.min(GEAR_RATIOS.length - 1, Math.max(0, gear - 1))];
+const gearRatio = (gear: number): number =>
+  GEAR_RATIOS[Math.min(GEAR_RATIOS.length - 1, Math.max(0, gear - 1))] ?? FIRST_GEAR_RATIO;
 
 /** Engine rpm the driveline would impose at this road speed and gear. */
 export function drivelineRpm(speed: number, gear: number) {
