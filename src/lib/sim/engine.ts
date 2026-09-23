@@ -211,7 +211,7 @@ export function computeLiveData(
   const misfireWeight = failure.id.includes("coil") ? load / 100 : idleish ? 1 : 0.2;
 
   // propshaft / halfshaft first-order frequency — drives vibration cues
-  const drivelineHz = (state.speed * RPM_PER_KMH * (FINAL_DRIVE / 3.55)) / 60;
+  const drivelineHz = (state.speed * RPM_PER_KMH * FINAL_DRIVE) / 60;
 
   return {
     rpm: Math.round(state.rpm),
