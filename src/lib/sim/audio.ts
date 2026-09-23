@@ -310,9 +310,13 @@ export class EngineAudio {
     const spaceHz = cabin ? 2600 : clamp(15000 - distance * 300, 2400, 15000);
     this.spaceFilter?.frequency.setTargetAtTime(spaceHz, t, 0.2);
 
-    // overall level: idle is quiet, throttle and load open it up
+    // overall level: idle is quiet, throttle and load open it up. With the
+    // engine off but the car still rolling you still hear tyres and wind.
+    const rolling = clamp(p.speed / 140, 0, 1);
     const shiftDuck = shifting ? 0.55 : 1;
-    const level = p.running ? (0.1 + throttle * 0.16 + load * 0.05) * shiftDuck * attenuation : 0.0001;
+    const level = p.running
+      ? (0.1 + throttle * 0.16 + load * 0.05) * shiftDuck * attenuation
+      : Math.max(0.0001, rolling * 0.08 * attenuation);
     this.master.gain.setTargetAtTime(level, t, shifting ? 0.04 : 0.1);
 
     // the airbox/exhaust brighten as the throttle plate opens
@@ -324,17 +328,31 @@ export class EngineAudio {
     this.exhaustPeak?.gain.setTargetAtTime(6 + throttle * 5 - (shifting ? 3 : 0), t, 0.1);
     this.halfGain?.gain.setTargetAtTime(p.running ? 0.1 + (1 - throttle) * 0.05 : 0, t, 0.1);
 
-    // pipes: tighter stereo image inside the cabin, wider from outside
+    // pipes: tighter stereo image inside the cabin, wider from outside, and
+    // silent with the engine shut off so only tyre/wind noise remains
+    const combustion = p.running ? 1 : 0;
     const pipeBalance = 0.5 + Math.sin(p.rpm / 900) * 0.04;
-    this.pipeLeft?.gain.setTargetAtTime((cabin ? 0.5 : 0.62) * pipeBalance * 2, t, 0.15);
-    this.pipeRight?.gain.setTargetAtTime((cabin ? 0.5 : 0.62) * (1 - pipeBalance) * 2, t, 0.15);
+    this.pipeLeft?.gain.setTargetAtTime(
+      (cabin ? 0.5 : 0.62) * pipeBalance * 2 * combustion,
+      t,
+      0.15,
+    );
+    this.pipeRight?.gain.setTargetAtTime(
+      (cabin ? 0.5 : 0.62) * (1 - pipeBalance) * 2 * combustion,
+      t,
+      0.15,
+    );
 
-    // intake roar tracks rpm and throttle
+    // intake roar tracks rpm and throttle; the shift itself adds the short
+    // "breath" of air as the throttle is momentarily unloaded
     this.intakeFilter?.frequency.setTargetAtTime(900 + (p.rpm / 1000) * 700, t, 0.1);
     const leanHiss = p.profileId === "lean-rough-idle" ? 0.045 * (1 - throttle) : 0;
     const vacuumHiss = p.profileId === "vacuum-leak" ? 0.05 * (1 - throttle) : 0;
+    const shiftBreath = shifting ? 0.03 * throttle : 0;
     this.intakeGain?.gain.setTargetAtTime(
-      p.running ? (0.012 + throttle * 0.055 + leanHiss + vacuumHiss) * (cabin ? 0.7 : 1.1) : 0,
+      p.running
+        ? (0.012 + throttle * 0.055 + leanHiss + vacuumHiss + shiftBreath) * (cabin ? 0.7 : 1.1)
+        : 0,
       t,
       shifting ? 0.06 : 0.12,
     );

@@ -41,17 +41,21 @@ export interface LiveDataFrame {
 }
 
 /** Ratios for a generic 6-speed; close enough for a training model. */
-const GEAR_RATIOS = [3.42, 2.05, 1.4, 1.0, 0.8, 0.66];
+const GEAR_RATIOS: readonly number[] = [3.42, 2.05, 1.4, 1.0, 0.8, 0.66];
+const FIRST_GEAR_RATIO = 3.42;
 const FINAL_DRIVE = 3.55;
-/** engine rpm per km/h in a 1:1 gear, tuned for a ~660mm rolling diameter */
-const RPM_PER_KMH = 9.1;
+/**
+ * Wheel revolutions per minute per km/h for a ~2.07 m rolling circumference:
+ * (1000 / 60) / 2.07 ≈ 8.05. Engine rpm is this × final drive × gear ratio.
+ */
+const RPM_PER_KMH = 8.05;
 
-const gearRatio = (gear: number) =>
-  GEAR_RATIOS[Math.min(GEAR_RATIOS.length - 1, Math.max(0, gear - 1))];
+const gearRatio = (gear: number): number =>
+  GEAR_RATIOS[Math.min(GEAR_RATIOS.length - 1, Math.max(0, gear - 1))] ?? FIRST_GEAR_RATIO;
 
 /** Engine rpm the driveline would impose at this road speed and gear. */
 export function drivelineRpm(speed: number, gear: number) {
-  return speed * RPM_PER_KMH * gearRatio(gear) * (FINAL_DRIVE / 3.55);
+  return speed * RPM_PER_KMH * FINAL_DRIVE * gearRatio(gear);
 }
 
 export const initialState = (v: Vehicle): SimState => ({
@@ -101,18 +105,27 @@ export function stepSim(
   // torque is cut during the shift event, which is what produces the
   // characteristic rpm dip and exhaust "breath" between gears
   const torqueCut = shifting ? 0.12 : 1;
-  const gearPull = 1 + (GEAR_RATIOS[0] - gearRatio(state.gear)) * 0.34;
-  const accel = throttle * 19 * gearPull * torqueCut * (1 - powerLoss);
-  const engineBrake = !state.brake && throttle < 0.05 ? 6 * (1 - state.slip) : 0;
-  const drag = state.speed * 0.22 + 1.4 + (state.brake ? 62 : 0) + engineBrake;
+  // tractive effort follows the gear ratio: short gears pull hard, tall gears
+  // trade thrust for road speed
+  const gearPull = 0.45 + 0.55 * (gearRatio(state.gear) / FIRST_GEAR_RATIO);
+  const accel = throttle * 34 * gearPull * torqueCut * (1 - powerLoss);
+  const engineBrake = !state.brake && throttle < 0.05 ? 5 * (1 - state.slip) : 0;
+  // aerodynamic drag is quadratic; rolling resistance roughly linear
+  const drag =
+    state.speed * state.speed * 0.0009 +
+    state.speed * 0.05 +
+    1 +
+    (state.brake ? 62 : 0) +
+    engineBrake;
   const speed = Math.max(0, Math.min(190, state.speed + (accel - drag) * dt));
 
   /* ------------------------------------------------------ gear selection */
   let gear = state.gear;
   let shiftTimer = Math.max(0, state.shiftTimer - dt);
   const geared = drivelineRpm(speed, gear);
-  const upshiftAt = vehicle.idleRpm + (vehicle.redline - vehicle.idleRpm) * (0.5 + throttle * 0.36);
-  const downshiftAt = vehicle.idleRpm * 1.25 + throttle * 900;
+  // light pedal shifts early and quietly, wide-open pedal holds gears to redline
+  const upshiftAt = vehicle.idleRpm + (vehicle.redline - vehicle.idleRpm) * (0.25 + throttle * 0.45);
+  const downshiftAt = vehicle.idleRpm * 1.15 + throttle * 1200;
 
   if (!shifting) {
     if (geared > upshiftAt && gear < GEAR_RATIOS.length) {
@@ -130,17 +143,23 @@ export function stepSim(
   const slipTarget = shifting ? 0.85 : Math.max(0.04, 1 - lockTarget) + throttle * 0.12;
   const slip = state.slip + (slipTarget - state.slip) * Math.min(1, dt * (shifting ? 7 : 2.6));
 
-  const freeRpm =
-    vehicle.idleRpm +
-    throttle * (vehicle.redline - vehicle.idleRpm) * (1 - powerLoss * 0.6) * (shifting ? 0.45 : 1);
   const coupledRpm = Math.max(vehicle.idleRpm * 0.92, drivelineRpm(speed, gear));
-  const targetRpm = coupledRpm * (1 - slip) + Math.max(freeRpm, coupledRpm) * slip;
+  // A slipping converter does NOT let the engine run to redline: it stalls
+  // against the impeller at roughly 2,000-2,800 rpm depending on pedal. That
+  // ceiling is what stops a launch from flaring to the rev limiter.
+  const stallRpm = Math.min(
+    vehicle.redline * 0.72,
+    vehicle.idleRpm + throttle * (2750 - vehicle.idleRpm) * (1 - powerLoss * 0.5),
+  );
+  // during the shift the torque is cut, so the engine falls toward driveline speed
+  const slippingRpm = shifting ? coupledRpm * 1.02 : Math.max(coupledRpm, stallRpm);
+  const targetRpm = coupledRpm * (1 - slip) + slippingRpm * slip;
 
   const rough = failure.effects.roughIdle ?? 0;
   const idleWobble = state.throttle < 8 ? Math.sin(state.elapsed * 11) * 70 * rough : 0;
 
   // inertia: revs rise faster than they fall, faster still when unloaded
-  const rise = targetRpm > state.rpm ? 3.4 + slip * 2.6 : 2.2;
+  const rise = targetRpm > state.rpm ? 2.4 + slip * 1.6 : 1.9;
   const rpm =
     state.rpm + (targetRpm - state.rpm) * Math.min(1, dt * rise) + idleWobble * dt * 4;
 
@@ -201,7 +220,7 @@ export function computeLiveData(
   const misfireWeight = failure.id.includes("coil") ? load / 100 : idleish ? 1 : 0.2;
 
   // propshaft / halfshaft first-order frequency — drives vibration cues
-  const drivelineHz = (state.speed * RPM_PER_KMH * (FINAL_DRIVE / 3.55)) / 60;
+  const drivelineHz = (state.speed * RPM_PER_KMH * FINAL_DRIVE) / 60;
 
   return {
     rpm: Math.round(state.rpm),
