@@ -105,18 +105,27 @@ export function stepSim(
   // torque is cut during the shift event, which is what produces the
   // characteristic rpm dip and exhaust "breath" between gears
   const torqueCut = shifting ? 0.12 : 1;
-  const gearPull = 1 + (FIRST_GEAR_RATIO - gearRatio(state.gear)) * 0.34;
-  const accel = throttle * 19 * gearPull * torqueCut * (1 - powerLoss);
-  const engineBrake = !state.brake && throttle < 0.05 ? 6 * (1 - state.slip) : 0;
-  const drag = state.speed * 0.22 + 1.4 + (state.brake ? 62 : 0) + engineBrake;
+  // tractive effort follows the gear ratio: short gears pull hard, tall gears
+  // trade thrust for road speed
+  const gearPull = 0.45 + 0.55 * (gearRatio(state.gear) / FIRST_GEAR_RATIO);
+  const accel = throttle * 34 * gearPull * torqueCut * (1 - powerLoss);
+  const engineBrake = !state.brake && throttle < 0.05 ? 5 * (1 - state.slip) : 0;
+  // aerodynamic drag is quadratic; rolling resistance roughly linear
+  const drag =
+    state.speed * state.speed * 0.0009 +
+    state.speed * 0.05 +
+    1 +
+    (state.brake ? 62 : 0) +
+    engineBrake;
   const speed = Math.max(0, Math.min(190, state.speed + (accel - drag) * dt));
 
   /* ------------------------------------------------------ gear selection */
   let gear = state.gear;
   let shiftTimer = Math.max(0, state.shiftTimer - dt);
   const geared = drivelineRpm(speed, gear);
-  const upshiftAt = vehicle.idleRpm + (vehicle.redline - vehicle.idleRpm) * (0.5 + throttle * 0.36);
-  const downshiftAt = vehicle.idleRpm * 1.25 + throttle * 900;
+  // light pedal shifts early and quietly, wide-open pedal holds gears to redline
+  const upshiftAt = vehicle.idleRpm + (vehicle.redline - vehicle.idleRpm) * (0.25 + throttle * 0.45);
+  const downshiftAt = vehicle.idleRpm * 1.15 + throttle * 1200;
 
   if (!shifting) {
     if (geared > upshiftAt && gear < GEAR_RATIOS.length) {
