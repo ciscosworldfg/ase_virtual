@@ -131,17 +131,23 @@ export function stepSim(
   const slipTarget = shifting ? 0.85 : Math.max(0.04, 1 - lockTarget) + throttle * 0.12;
   const slip = state.slip + (slipTarget - state.slip) * Math.min(1, dt * (shifting ? 7 : 2.6));
 
-  const freeRpm =
-    vehicle.idleRpm +
-    throttle * (vehicle.redline - vehicle.idleRpm) * (1 - powerLoss * 0.6) * (shifting ? 0.45 : 1);
   const coupledRpm = Math.max(vehicle.idleRpm * 0.92, drivelineRpm(speed, gear));
-  const targetRpm = coupledRpm * (1 - slip) + Math.max(freeRpm, coupledRpm) * slip;
+  // A slipping converter does NOT let the engine run to redline: it stalls
+  // against the impeller at roughly 2,000-2,800 rpm depending on pedal. That
+  // ceiling is what stops a launch from flaring to the rev limiter.
+  const stallRpm = Math.min(
+    vehicle.redline * 0.72,
+    vehicle.idleRpm + throttle * (2750 - vehicle.idleRpm) * (1 - powerLoss * 0.5),
+  );
+  // during the shift the torque is cut, so the engine falls toward driveline speed
+  const slippingRpm = shifting ? coupledRpm * 1.02 : Math.max(coupledRpm, stallRpm);
+  const targetRpm = coupledRpm * (1 - slip) + slippingRpm * slip;
 
   const rough = failure.effects.roughIdle ?? 0;
   const idleWobble = state.throttle < 8 ? Math.sin(state.elapsed * 11) * 70 * rough : 0;
 
   // inertia: revs rise faster than they fall, faster still when unloaded
-  const rise = targetRpm > state.rpm ? 3.4 + slip * 2.6 : 2.2;
+  const rise = targetRpm > state.rpm ? 2.4 + slip * 1.6 : 1.9;
   const rpm =
     state.rpm + (targetRpm - state.rpm) * Math.min(1, dt * rise) + idleWobble * dt * 4;
 
