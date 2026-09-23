@@ -44,8 +44,11 @@ export interface LiveDataFrame {
 const GEAR_RATIOS: readonly number[] = [3.42, 2.05, 1.4, 1.0, 0.8, 0.66];
 const FIRST_GEAR_RATIO = 3.42;
 const FINAL_DRIVE = 3.55;
-/** engine rpm per km/h in a 1:1 gear, tuned for a ~660mm rolling diameter */
-const RPM_PER_KMH = 9.1;
+/**
+ * Wheel revolutions per minute per km/h for a ~2.07 m rolling circumference:
+ * (1000 / 60) / 2.07 ≈ 8.05. Engine rpm is this × final drive × gear ratio.
+ */
+const RPM_PER_KMH = 8.05;
 
 const gearRatio = (gear: number): number =>
   GEAR_RATIOS[Math.min(GEAR_RATIOS.length - 1, Math.max(0, gear - 1))] ?? FIRST_GEAR_RATIO;
