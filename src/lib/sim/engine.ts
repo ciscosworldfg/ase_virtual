@@ -55,7 +55,7 @@ const gearRatio = (gear: number): number =>
 
 /** Engine rpm the driveline would impose at this road speed and gear. */
 export function drivelineRpm(speed: number, gear: number) {
-  return speed * RPM_PER_KMH * gearRatio(gear) * (FINAL_DRIVE / 3.55);
+  return speed * RPM_PER_KMH * FINAL_DRIVE * gearRatio(gear);
 }
 
 export const initialState = (v: Vehicle): SimState => ({
