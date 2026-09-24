@@ -10,6 +10,7 @@ import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
 import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
+import { SymptomAssessment } from "@/components/ase/SymptomAssessment";
 import { scenarioById } from "@/lib/sim/scenarios";
 import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
 import { computeLiveData, initialState, type SimState } from "@/lib/sim/engine";
@@ -250,6 +251,7 @@ function Session() {
 
           <aside className="space-y-4">
             <MasterTechPanel scenario={scenario} data={data} toolsUsed={toolsUsed} />
+            <SymptomAssessment scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
             <div className="panel-instrument p-4">
               <span className="label-tech">Evidence collected</span>
               <ul className="mt-3 space-y-1.5 text-sm">
