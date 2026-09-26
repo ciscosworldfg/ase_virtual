@@ -48,6 +48,7 @@ const BASE_STAGES = [
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
   { id: "diagnose", label: "Diagnosis" },
+  { id: "estimate", label: "Estimate" },
 ] as const;
 
 type Stage = string;
