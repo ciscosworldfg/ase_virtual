@@ -119,8 +119,8 @@ function gatherEvidence(scenario: Scenario, data: LiveDataFrame, toolsUsed: stri
     if (t.kind === "network") t.modules.filter((m) => m.status !== "ok").forEach((m) => ev.push(`${m.name}: ${m.status}`));
     if (t.kind === "vibration") ev.push(`${t.title}: ${t.analysis.slice(0, 80)}`);
   }
-  if (toolsUsed.includes("testdrive") && data.running)
-    ev.push(`Live: ${Math.round(data.rpm)} rpm, STFT ${data.stft?.toFixed?.(1) ?? data.stft}%, LTFT ${data.ltft?.toFixed?.(1) ?? data.ltft}%`);
+  if (toolsUsed.includes("testdrive") && data.rpm > 0)
+    ev.push(`Live: ${Math.round(data.rpm)} rpm, STFT ${data.stft.toFixed(1)}%, LTFT ${data.ltft.toFixed(1)}%`);
   return ev;
 }
 
