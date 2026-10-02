@@ -10,6 +10,8 @@ import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
 import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
+import { EstimateBuilder } from "@/components/ase/EstimateBuilder";
+import { ServiceRoleplay } from "@/components/ase/ServiceRoleplay";
 import { SymptomAssessment } from "@/components/ase/SymptomAssessment";
 import { scenarioById } from "@/lib/sim/scenarios";
 import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
@@ -48,7 +50,6 @@ const BASE_STAGES = [
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
   { id: "diagnose", label: "Diagnosis" },
-  { id: "estimate", label: "Estimate" },
 ] as const;
 
 type Stage = string;
@@ -70,6 +71,7 @@ function Session() {
       }).map((s) => ({ id: s.id as string, label: s.label as string })),
       ...toolStages,
       { id: "diagnose", label: "Diagnosis" },
+      { id: "service", label: "Service desk" },
     ];
   }, [scenario]);
 
@@ -237,6 +239,12 @@ function Session() {
                 ),
             )}
 
+            {stage === "service" && (
+              <>
+                <ServiceRoleplay scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
+                <EstimateBuilder scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
+              </>
+            )}
             {stage === "diagnose" &&
               (result ? (
                 <SessionResult scenario={scenario} result={result} />
@@ -251,12 +259,12 @@ function Session() {
           </div>
 
           <aside className="space-y-4">
-            <MasterTechPanel scenario={scenario} data={data} toolsUsed={toolsUsed} />
+            <MasterTechPanel scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
             <SymptomAssessment scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
             <div className="panel-instrument p-4">
               <span className="label-tech">Evidence collected</span>
               <ul className="mt-3 space-y-1.5 text-sm">
-                {STAGES.filter((s) => s.id !== "diagnose").map((s) => (
+                {STAGES.filter((s) => s.id !== "diagnose" && s.id !== "service").map((s) => (
                   <li key={s.id} className="flex items-center justify-between">
                     <span className="text-muted-foreground">{s.label}</span>
                     <span className={toolsUsed.includes(s.id) ? "text-ok" : "text-muted-foreground"}>

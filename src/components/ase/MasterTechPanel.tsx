@@ -1,107 +1,127 @@
 import { useState } from "react";
-import { Bot } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Bot, Loader2, Send } from "lucide-react";
 import type { LiveDataFrame } from "@/lib/sim/engine";
-import type { Scenario } from "@/lib/sim/types";
+import type { Scenario, Vehicle } from "@/lib/sim/types";
+import { askMasterTech } from "@/lib/service.functions";
+import { gatherEvidence } from "./EstimateBuilder";
 
-/**
- * MASTER TECH reasons only from evidence the user has actually collected in
- * this session. It never invents measurements and never states the root cause
- * outright.
- */
+export function buildCtx(scenario: Scenario, vehicle: Vehicle | undefined, data: LiveDataFrame, toolsUsed: string[]) {
+  const live: Record<string, number | boolean | string> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "number") live[k] = Math.round(v * 100) / 100;
+    else if (typeof v === "boolean" || typeof v === "string") live[k] = v;
+  }
+  return {
+    vehicle: vehicle
+      ? `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.engine}, ${vehicle.transmission}, ${vehicle.mileage} mi`
+      : scenario.vehicleId,
+    category: scenario.category,
+    complaint: scenario.complaint,
+    evidence: gatherEvidence(scenario, data, toolsUsed).map((e) => e.slice(0, 300)),
+    toolsUsed,
+    liveData: live,
+  };
+}
+
+type Msg = { role: "user" | "assistant"; content: string };
+
 export function MasterTechPanel({
   scenario,
+  vehicle,
   data,
   toolsUsed,
 }: {
   scenario: Scenario;
+  vehicle?: Vehicle;
   data: LiveDataFrame;
   toolsUsed: string[];
 }) {
-  const [messages, setMessages] = useState<{ who: "tech" | "ai"; text: string }[]>([
-    {
-      who: "ai",
-      text: "I'm Master Tech. I'll reason from the evidence you've actually gathered — nothing more. Gather data, then ask me what it means.",
-    },
-  ]);
+  const ask = useServerFn(askMasterTech);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const evidence = () => {
-    const facts: string[] = [];
-    if (toolsUsed.includes("interview")) facts.push(`the customer reports: “${scenario.complaint}”`);
-    if (toolsUsed.includes("testdrive"))
-      facts.push(
-        `on the test drive the vehicle showed ${scenario.testDriveEvents[1]?.detail.toLowerCase() ?? "the reported symptom"}`,
-      );
-    if (toolsUsed.includes("scan"))
-      facts.push(
-        scenario.codes.length
-          ? `stored codes are ${scenario.codes.map((c) => c.code).join(", ")}, with fuel trims at STFT ${data.stft}% / LTFT ${data.ltft}%`
-          : "no codes are stored, so this is a mechanical concern you must measure",
-      );
-    if (toolsUsed.includes("inspect")) {
-      const bad = scenario.inspection.find((i) => i.abnormal);
-      if (bad) facts.push(`inspection of the ${bad.label.toLowerCase()} was abnormal: ${bad.findings[0]?.toLowerCase()}`);
+  const send = async (q: string) => {
+    const question = q.trim();
+    if (question.length < 2 || loading) return;
+    setInput("");
+    setError(null);
+    setLoading(true);
+    const history = messages.slice(-10);
+    setMessages((m) => [...m, { role: "user", content: question }]);
+    try {
+      const r = await ask({ data: { ...buildCtx(scenario, vehicle, data, toolsUsed), history, question } });
+      if (r.ok) setMessages((m) => [...m, { role: "assistant", content: r.text }]);
+      else setError(r.error);
+    } catch {
+      setError("Master Tech couldn't be reached. Try again.");
+    } finally {
+      setLoading(false);
     }
-    if (toolsUsed.includes("meter"))
-      facts.push("your meter readings are on the bench and should be compared against specification");
-    return facts;
-  };
-
-  const ask = (prompt: string) => {
-    const facts = evidence();
-    let reply: string;
-    if (!facts.length) {
-      reply =
-        "I don't have any evidence from you yet. Interview the customer, drive the vehicle, then pull codes. I won't guess ahead of the data.";
-    } else if (prompt.startsWith("What does")) {
-      reply = `Based on the available evidence — ${facts.join("; ")} — I'd form a hypothesis, not a conclusion. Ask yourself which single fault explains every one of those observations at once.`;
-    } else if (prompt.startsWith("What should I test")) {
-      reply = `Your next move should be a test that can prove your hypothesis wrong, not one that just agrees with it. ${
-        toolsUsed.includes("meter")
-          ? "You've used the meter; compare each reading against the published spec before you commit."
-          : "You haven't measured anything yet — put probes on the circuit before condemning a component."
-      }`;
-    } else {
-      reply = `Here's my discipline: separate what you know from what you suspect. Known right now: ${facts.join("; ")}. Everything else is hypothesis until a confirmation test moves it across the line.`;
-    }
-    setMessages((m) => [...m, { who: "tech", text: prompt }, { who: "ai", text: reply }]);
   };
 
   return (
     <div className="panel-instrument overflow-hidden">
       <div className="flex items-center gap-2 border-b border-border bg-panel px-4 py-3">
         <Bot className="h-4 w-4 text-primary" />
-        <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
-          Master Tech
-        </span>
+        <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">Master Tech</span>
+        <span className="ml-auto label-tech text-muted-foreground">AI · evidence only</span>
       </div>
-      <div className="max-h-72 space-y-3 overflow-y-auto p-4">
+      <div className="max-h-96 space-y-3 overflow-y-auto p-4">
+        {messages.length === 0 && (
+          <p className="max-w-[92%] rounded-sm border border-border bg-panel px-3 py-2 text-sm text-muted-foreground">
+            I reason only from evidence you've collected. Gather data, then ask me for a full diagnostic.
+          </p>
+        )}
         {messages.map((m, i) => (
           <p
             key={i}
-            className={`rounded-sm px-3 py-2 text-sm ${
-              m.who === "tech"
+            className={`whitespace-pre-wrap rounded-sm px-3 py-2 text-sm ${
+              m.role === "user"
                 ? "ml-auto max-w-[85%] border border-primary/40 bg-primary/10"
-                : "max-w-[92%] border border-border bg-panel text-muted-foreground"
+                : "max-w-[96%] border border-border bg-panel text-muted-foreground"
             }`}
           >
-            {m.text}
+            {m.content}
           </p>
         ))}
+        {loading && (
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Master Tech is reviewing your evidence…
+          </p>
+        )}
+        {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
       <div className="flex flex-wrap gap-2 border-t border-border p-3">
-        {[
-          "What does the evidence show so far?",
-          "What should I test next?",
-          "How do I stay disciplined here?",
-        ].map((q) => (
+        {["Give me a full diagnostic", "What should I test next?", "What evidence am I missing?"].map((q) => (
           <button
             key={q}
-            onClick={() => ask(q)}
-            className="rounded-sm border border-border bg-panel px-3 py-1.5 text-xs hover:bg-accent"
+            disabled={loading}
+            onClick={() => send(q)}
+            className="rounded-sm border border-border bg-panel px-3 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
           >
             {q}
           </button>
         ))}
+        <form
+          className="flex w-full gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Master Tech…"
+            className="flex-1 rounded-sm border border-border bg-background px-3 py-1.5 text-sm"
+          />
+          <button disabled={loading} aria-label="Send" className="rounded-sm bg-primary px-3 text-primary-foreground disabled:opacity-50">
+            <Send className="h-4 w-4" />
+          </button>
+        </form>
       </div>
     </div>
   );
