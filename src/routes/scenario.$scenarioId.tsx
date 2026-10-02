@@ -67,7 +67,7 @@ function Session() {
       ...BASE_STAGES.filter((s) => {
         if (s.id === "scan" && scenario.hideScanTool) return false;
         if (s.id === "meter" && scenario.hideMultimeter) return false;
-        return s.id !== "diagnose" && s.id !== "service";
+        return s.id !== "diagnose";
       }).map((s) => ({ id: s.id as string, label: s.label as string })),
       ...toolStages,
       { id: "diagnose", label: "Diagnosis" },
