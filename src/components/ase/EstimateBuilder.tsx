@@ -103,7 +103,7 @@ const KIND_LABEL: Record<Kind, string> = { labor: "Labor", part: "Part", fluid: 
 let seq = 0;
 const nid = () => `l${++seq}`;
 
-function gatherEvidence(scenario: Scenario, data: LiveDataFrame, toolsUsed: string[]) {
+export function gatherEvidence(scenario: Scenario, data: LiveDataFrame, toolsUsed: string[]) {
   const ev: string[] = [];
   if (toolsUsed.includes("interview")) ev.push(`Customer: ${scenario.complaint.slice(0, 80)}`);
   if (toolsUsed.includes("scan")) scenario.codes.forEach((c) => ev.push(`DTC ${c.code} — ${c.description}`));
