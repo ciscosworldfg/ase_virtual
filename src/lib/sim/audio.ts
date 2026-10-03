@@ -89,6 +89,8 @@ export class EngineAudio {
   private exhaustPeak: BiquadFilterNode | null = null;
   private pipeLeft: GainNode | null = null;
   private pipeRight: GainNode | null = null;
+  private panL: StereoPannerNode | null = null;
+  private panR: StereoPannerNode | null = null;
 
   private intakeGain: GainNode | null = null;
   private intakeFilter: BiquadFilterNode | null = null;
@@ -268,6 +270,8 @@ export class EngineAudio {
       exhaustPeak,
       pipeLeft,
       pipeRight,
+      panL,
+      panR,
       intakeGain,
       intakeFilter,
       roadGain,
@@ -304,29 +308,37 @@ export class EngineAudio {
     /* --------------------------------------------- perspective / distance */
     const cabin = (p.perspective ?? "cabin") === "cabin";
     const distance = clamp(p.distance ?? (cabin ? 1 : 6), 1, 40);
-    // inverse-distance attenuation with a reference distance of 2 m
-    const attenuation = cabin ? 0.85 : clamp(2 / distance, 0.08, 1);
-    // cabin glass rolls off the top end; outside, air absorption does it slowly
-    const spaceHz = cabin ? 2600 : clamp(15000 - distance * 300, 2400, 15000);
+    // inverse-distance law (-6 dB per doubling), 2 m reference
+    const attenuation = cabin ? 0.85 : clamp(2 / distance, 0.05, 1);
+    // cabin glass rolls off the top end; outside, air absorption is gentle and
+    // only noticeable past ~10 m
+    const spaceHz = cabin ? 3200 : clamp(16000 - distance * 260, 5000, 16000);
     this.spaceFilter?.frequency.setTargetAtTime(spaceHz, t, 0.2);
 
-    // overall level: idle is quiet, throttle and load open it up. With the
-    // engine off but the car still rolling you still hear tyres and wind.
+    // stereo image: inside, both pipes sit behind you (narrow); outside up
+    // close the pipes are wide apart, and the image collapses toward a point
+    // source as you walk away
+    const width = cabin ? 0.28 : clamp(0.9 - (distance - 1) * 0.03, 0.15, 0.9);
+    this.panL?.pan.setTargetAtTime(-width, t, 0.2);
+    this.panR?.pan.setTargetAtTime(width, t, 0.2);
+
+    // overall level: idle is a quiet burble, throttle opens it up ~10 dB.
+    // With the engine off but the car still rolling you still hear tyres/wind.
     const rolling = clamp(p.speed / 140, 0, 1);
     const shiftDuck = shifting ? 0.55 : 1;
     const level = p.running
-      ? (0.1 + throttle * 0.16 + load * 0.05) * shiftDuck * attenuation
+      ? (0.07 + throttle * 0.28 + load * 0.06) * shiftDuck * attenuation
       : Math.max(0.0001, rolling * 0.08 * attenuation);
     this.master.gain.setTargetAtTime(level, t, shifting ? 0.04 : 0.1);
 
     // the airbox/exhaust brighten as the throttle plate opens
     this.bodyFilter?.frequency.setTargetAtTime(
-      520 + throttle * 2600 * (shifting ? 0.5 : 1) + (p.rpm / 1000) * 240,
+      900 + throttle * 2800 * (shifting ? 0.5 : 1) + (p.rpm / 1000) * 260,
       t,
       shifting ? 0.05 : 0.09,
     );
     this.exhaustPeak?.gain.setTargetAtTime(6 + throttle * 5 - (shifting ? 3 : 0), t, 0.1);
-    this.halfGain?.gain.setTargetAtTime(p.running ? 0.1 + (1 - throttle) * 0.05 : 0, t, 0.1);
+    this.halfGain?.gain.setTargetAtTime(p.running ? 0.05 + (1 - throttle) * 0.03 : 0, t, 0.1);
 
     // pipes: tighter stereo image inside the cabin, wider from outside, and
     // silent with the engine shut off so only tyre/wind noise remains
