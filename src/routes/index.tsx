@@ -8,6 +8,7 @@ import {
   ShieldAlert,
   Wrench,
 } from "lucide-react";
+import { QuickDemo } from "@/components/ase/QuickDemo";
 import { SiteNav } from "@/components/ase/SiteNav";
 import { SCENARIOS } from "@/lib/sim/scenarios";
 import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
@@ -83,6 +84,22 @@ function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.2fr]">
+          <div>
+            <h2 className="font-display text-2xl font-bold uppercase tracking-wide">
+              Try a diagnosis right now
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              No account, no setup. Work one real fault from complaint to root cause in about a
+              minute — then take the same car into the full simulator with the scan tool,
+              multimeter and test drive.
+            </p>
+          </div>
+          <QuickDemo />
         </div>
       </section>
 
