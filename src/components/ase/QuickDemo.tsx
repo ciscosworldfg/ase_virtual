@@ -105,7 +105,7 @@ export function QuickDemo() {
             title={current.finding}
             body={current.detail}
             onNext={() => setStep((s) => s + 1)}
-            nextLabel={step - 2 < STEPS.length - 1 ? "Gather more evidence" : "Make the call"}
+            nextLabel={step - 2 < STEPS.length - 2 ? "Gather more evidence" : "Make the call"}
           />
         )}
 
