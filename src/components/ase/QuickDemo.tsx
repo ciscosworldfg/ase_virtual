@@ -5,12 +5,11 @@ import { ArrowRight, CheckCircle2, RotateCcw, Timer, XCircle } from "lucide-reac
 const DEMO_SECONDS = 60;
 
 type DemoStep =
-  | { kind: "complaint" }
   | { kind: "evidence"; tool: string; finding: string; detail: string }
   | { kind: "decide" };
 
+// Step 0 = start screen, step 1 = complaint, steps 2..2+STEPS.length-1 = this list.
 const STEPS: DemoStep[] = [
-  { kind: "complaint" },
   {
     kind: "evidence",
     tool: "Scan tool",
