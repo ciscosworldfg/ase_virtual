@@ -51,7 +51,7 @@ export function QuickDemo() {
     return () => clearInterval(t);
   }, [running]);
 
-  const current = STEPS[step];
+  const current = step >= 2 ? STEPS[step - 2] : undefined;
   const choice = useMemo(() => CHOICES.find((c) => c.id === picked), [picked]);
 
   const reset = () => {
@@ -89,7 +89,7 @@ export function QuickDemo() {
           </div>
         )}
 
-        {current?.kind === "complaint" && (
+        {step === 1 && (
           <DemoCard
             kicker="Customer complaint · 2018 Honda Accord"
             title="“The engine runs rough and the check-engine light is on. It's worst when I'm sitting at a red light.”"
@@ -105,7 +105,7 @@ export function QuickDemo() {
             title={current.finding}
             body={current.detail}
             onNext={() => setStep((s) => s + 1)}
-            nextLabel={step < STEPS.length - 1 ? "Gather more evidence" : "Make the call"}
+            nextLabel={step - 2 < STEPS.length - 1 ? "Gather more evidence" : "Make the call"}
           />
         )}
 
