@@ -107,6 +107,22 @@ export class EngineAudio {
   private driveline: OscillatorNode | null = null;
   private drivelineGain: GainNode | null = null;
 
+  /** cycle-to-cycle combustion variation (cents / gain) */
+  private jitterPitch: GainNode | null = null;
+  private jitterAmp: GainNode | null = null;
+  /** exhaust gas pulses: noise gated at the firing rate */
+  private pulseOsc: OscillatorNode | null = null;
+  private pulseDepth: GainNode | null = null;
+  private chuffGain: GainNode | null = null;
+  private chuffFilter: BiquadFilterNode | null = null;
+  /** valvetrain tick, heard close to the engine */
+  private tickGain: GainNode | null = null;
+  private tickOsc: OscillatorNode | null = null;
+  /** overrun pops / crackle */
+  private popGain: GainNode | null = null;
+  /** structure-borne boom inside the cabin */
+  private cabinBoom: BiquadFilterNode | null = null;
+
   private cylinders = 4;
   private started = false;
 
@@ -131,7 +147,11 @@ export class EngineAudio {
     comp.ratio.value = 6;
     comp.attack.value = 0.005;
     comp.release.value = 0.16;
-    master.connect(spaceFilter).connect(comp).connect(ctx.destination);
+    const cabinBoom = ctx.createBiquadFilter();
+    cabinBoom.type = "lowshelf";
+    cabinBoom.frequency.value = 140;
+    cabinBoom.gain.value = 0;
+    master.connect(cabinBoom).connect(spaceFilter).connect(comp).connect(ctx.destination);
 
     /* ---------------------------------------------------------- combustion */
     const wave = buildEngineWave(ctx, cylinders);
@@ -187,6 +207,74 @@ export class EngineAudio {
     const halfGain = ctx.createGain();
     halfGain.gain.value = 0.12;
     halfOrder.connect(halfGain).connect(master);
+
+    /* ------------------------------- combustion jitter (no two firings match) */
+    const jitterSrc = ctx.createBufferSource();
+    jitterSrc.buffer = noiseBuffer(ctx, false);
+    jitterSrc.loop = true;
+    const jitterLp = ctx.createBiquadFilter();
+    jitterLp.type = "lowpass";
+    jitterLp.frequency.value = 9;
+    jitterLp.Q.value = 0.3;
+    jitterSrc.connect(jitterLp);
+    const jitterPitch = ctx.createGain();
+    jitterPitch.gain.value = 0;
+    jitterLp.connect(jitterPitch);
+    jitterPitch.connect(fire.detune);
+    jitterPitch.connect(fireDetune.detune);
+    const jitterAmp = ctx.createGain();
+    jitterAmp.gain.value = 0;
+    jitterLp.connect(jitterAmp).connect(fireGain.gain);
+
+    /* ------------------------------- exhaust gas pulses ("chuff"/"burble") */
+    const chuffSrc = ctx.createBufferSource();
+    chuffSrc.buffer = noiseBuffer(ctx, false);
+    chuffSrc.loop = true;
+    const chuffFilter = ctx.createBiquadFilter();
+    chuffFilter.type = "bandpass";
+    chuffFilter.frequency.value = 220;
+    chuffFilter.Q.value = 0.8;
+    const chuffGain = ctx.createGain();
+    chuffGain.gain.value = 0;
+    chuffSrc.connect(chuffFilter).connect(chuffGain).connect(exhaustPeak);
+    const pulseOsc = ctx.createOscillator();
+    pulseOsc.type = "sawtooth";
+    pulseOsc.frequency.value = 40;
+    const pulseDepth = ctx.createGain();
+    pulseDepth.gain.value = 0;
+    pulseOsc.connect(pulseDepth).connect(chuffGain.gain);
+
+    /* ------------------------------------------------------ valvetrain tick */
+    const tickSrc = ctx.createBufferSource();
+    tickSrc.buffer = noiseBuffer(ctx, false);
+    tickSrc.loop = true;
+    const tickHp = ctx.createBiquadFilter();
+    tickHp.type = "bandpass";
+    tickHp.frequency.value = 4200;
+    tickHp.Q.value = 2;
+    const tickGain = ctx.createGain();
+    tickGain.gain.value = 0;
+    const tickOsc = ctx.createOscillator();
+    tickOsc.type = "square";
+    tickOsc.frequency.value = 20;
+    const tickDepth = ctx.createGain();
+    tickDepth.gain.value = 1;
+    tickOsc.connect(tickDepth).connect(tickGain.gain);
+    const tickPan = ctx.createStereoPanner();
+    tickPan.pan.value = 0.1;
+    tickSrc.connect(tickHp).connect(tickGain).connect(tickPan).connect(master);
+
+    /* ------------------------------------------------- overrun pops/crackle */
+    const popSrc = ctx.createBufferSource();
+    popSrc.buffer = noiseBuffer(ctx, false);
+    popSrc.loop = true;
+    const popFilter = ctx.createBiquadFilter();
+    popFilter.type = "bandpass";
+    popFilter.frequency.value = 650;
+    popFilter.Q.value = 0.7;
+    const popGain = ctx.createGain();
+    popGain.gain.value = 0;
+    popSrc.connect(popFilter).connect(popGain).connect(exhaustPeak);
 
     /* -------------------------------------------------------------- intake */
     const intake = ctx.createBufferSource();
@@ -256,6 +344,12 @@ export class EngineAudio {
     whine.start();
     driveline.start();
     modOsc.start();
+    jitterSrc.start();
+    chuffSrc.start();
+    pulseOsc.start();
+    tickSrc.start();
+    tickOsc.start();
+    popSrc.start();
 
     Object.assign(this, {
       ctx,
@@ -282,6 +376,16 @@ export class EngineAudio {
       drivelineGain,
       modOsc,
       modDepth,
+      jitterPitch,
+      jitterAmp,
+      pulseOsc,
+      pulseDepth,
+      chuffGain,
+      chuffFilter,
+      tickGain,
+      tickOsc,
+      popGain,
+      cabinBoom,
       started: true,
     });
   }
@@ -305,6 +409,24 @@ export class EngineAudio {
     this.fireDetune.frequency.setTargetAtTime(fireHz, t, glide);
     this.halfOrder.frequency.setTargetAtTime(clamp(p.rpm / 120, 8, 120), t, glide + 0.02);
 
+    this.pulseOsc?.frequency.setTargetAtTime(fireHz, t, glide);
+    this.tickOsc?.frequency.setTargetAtTime(clamp((p.rpm / 120) * cyl, 4, 400), t, glide);
+
+    // Real combustion varies cycle to cycle: idle wanders more (lumpy, alive),
+    // load evens it out. A perfect oscillator is what makes synth engines buzz.
+    const run = p.running ? 1 : 0;
+    const idleness = clamp(1 - (p.rpm - 600) / 2400, 0, 1) * (1 - throttle * 0.7);
+    this.jitterPitch?.gain.setTargetAtTime(run * (6 + idleness * 28), t, 0.2);
+    this.jitterAmp?.gain.setTargetAtTime(run * (0.03 + idleness * 0.09), t, 0.2);
+
+    // Exhaust is gas pulses, not a pure tone: noise gated at the firing rate.
+    // Dominant at idle/light load (burble); under throttle the pulse merges into
+    // a broadband roar centred higher.
+    this.chuffFilter?.frequency.setTargetAtTime(180 + throttle * 420 + (p.rpm / 1000) * 60, t, 0.1);
+    const chuff = run * (0.18 + throttle * 0.22);
+    this.chuffGain?.gain.setTargetAtTime(chuff * 0.5, t, 0.1);
+    this.pulseDepth?.gain.setTargetAtTime(chuff * 0.5, t, 0.1);
+
     /* --------------------------------------------- perspective / distance */
     const cabin = (p.perspective ?? "cabin") === "cabin";
     const distance = clamp(p.distance ?? (cabin ? 1 : 6), 1, 40);
@@ -314,6 +436,23 @@ export class EngineAudio {
     // only noticeable past ~10 m
     const spaceHz = cabin ? 3200 : clamp(16000 - distance * 260, 5000, 16000);
     this.spaceFilter?.frequency.setTargetAtTime(spaceHz, t, 0.2);
+    // inside, the firewall passes mostly low-frequency structure-borne boom
+    this.cabinBoom?.gain.setTargetAtTime(cabin ? 5 : 0, t, 0.2);
+
+    // valve tick: only audible with the hood near you and the engine light
+    const tickLevel = cabin ? 0.004 : clamp(0.02 * (2 / distance), 0, 0.02);
+    this.tickGain?.gain.setTargetAtTime(run * tickLevel * (1 - throttle * 0.6), t, 0.15);
+
+    // overrun: throttle shut at high revs → unburnt fuel pops in the exhaust
+    if (this.popGain && p.running && throttle < 0.03 && p.rpm > 2200 && !shifting) {
+      const pops = Math.random() < 0.55 ? 1 + Math.floor(Math.random() * 2) : 0;
+      for (let i = 0; i < pops; i++) {
+        const at = t + Math.random() * 0.09;
+        const peak = 0.25 + Math.random() * 0.35;
+        this.popGain.gain.setValueAtTime(peak, at);
+        this.popGain.gain.setTargetAtTime(0, at + 0.004, 0.012);
+      }
+    }
 
     // stereo image: inside, both pipes sit behind you (narrow); outside up
     // close the pipes are wide apart, and the image collapses toward a point
@@ -416,7 +555,7 @@ export class EngineAudio {
     if (!ctx) return;
     try {
       this.master?.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05);
-      [this.fire, this.fireDetune, this.halfOrder, this.whine, this.driveline, this.modOsc].forEach(
+      [this.fire, this.fireDetune, this.halfOrder, this.whine, this.driveline, this.modOsc, this.pulseOsc, this.tickOsc].forEach(
         (o) => o?.stop(ctx.currentTime + 0.2),
       );
       window.setTimeout(() => void ctx.close(), 300);
