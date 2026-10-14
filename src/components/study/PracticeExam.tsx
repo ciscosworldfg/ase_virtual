@@ -40,7 +40,7 @@ export function PracticeExam() {
   const pick = (id: string) => {
     if (picked) return;
     setPicked(id);
-    const correct = id === questions[idx].correct;
+    const correct = id === questions[idx]!.correct;
     if (correct) setFirstTry((n) => n + 1);
     else setWrong((n) => n + 1);
   };
@@ -131,7 +131,7 @@ export function PracticeExam() {
     );
   }
 
-  const q = questions[idx];
+  const q = questions[idx]!;
   const correct = picked === q.correct;
 
   return (
