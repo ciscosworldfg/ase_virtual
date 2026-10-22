@@ -1,15 +1,16 @@
 export type AiResult = { ok: true; text: string } | { ok: false; error: string };
 
 /**
- * Calls Google's Gemini API from the server. Keep GEMINI_API_KEY in the
+ * Calls Google's Gemini API from the server. Keep the API key in the
  * deployment environment; never expose it to browser code or commit it.
  */
 export async function runResponses(instructions: string, input: unknown): Promise<AiResult> {
-  const key = process.env["GEMINI_API_KEY"];
+  // Support the standard name and the existing LAT deployment variable.
+  const key = process.env["GEMINI_API_KEY"] ?? process.env["LAT_LEARNING_AUTOMOTIVE_TECH"];
   if (!key) {
     return {
       ok: false,
-      error: "Gemini is not configured on the server. Add GEMINI_API_KEY to the Vercel Production environment and redeploy.",
+      error: "Gemini is not configured on the server. Add GEMINI_API_KEY or LAT_LEARNING_AUTOMOTIVE_TECH to the Vercel environment and redeploy.",
     };
   }
 
