@@ -74,11 +74,21 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "Worn piston rings are the likely cause.",
     "A",
     "Tech B is the distractor: worn rings burn oil (blue smoke) but rarely cause rapid coolant overheating. White smoke + combustion gas in the radiator = seal breach in Layer 3."),
-  q("a1-4", "A1", "A 'U' code reports camshaft/crankshaft correlation loss. Which engine layer does this most directly implicate?", ABCD, "B",
+  q("a1-4", "A1", "A 'U' code reports camshaft/crankshaft correlation loss. Which engine layer does this most directly implicate?", [
+    { id: "A", text: "Layer 1 — Power and ground supply" },
+    { id: "B", text: "Layer 2 — Mechanical synchronization" },
+    { id: "C", text: "Layer 4 — Fuel and ignition actuators" },
+    { id: "D", text: "Layer 5 — Exhaust aftertreatment" },
+  ], "B",
     "Layer 2 — Synchronization (timing belt/chain, gears, tensioners). Cam/crank correlation loss means the cam has drifted from the crank; on an interference engine, a 'Synchronization Snap' destroys the engine."),
 
   // ---------- A2 Automatic Transmission ----------
-  q("a2-1", "A2", "An automatic transmission has a slipping concern only when the vehicle is cold. Which is the most likely cause?", ABCD, "B",
+  q("a2-1", "A2", "An automatic transmission slips only when cold, then shifts normally after warming up. Which is the best next hypothesis to test?", [
+    { id: "A", text: "A failed vehicle-speed sensor causing an incorrect speed display" },
+    { id: "B", text: "An internal hydraulic leak from hardened seals" },
+    { id: "C", text: "A restricted catalytic converter" },
+    { id: "D", text: "A worn engine mount allowing excess movement" },
+  ], "B",
     "Hardened internal seals. As the fluid warms up, the seals expand and seal better — that is why the slip disappears. Fluid-condition faults are condition-dependent; read the condition first."),
   tab("a2-2", "A2",
     "A scan tool shows a TCC slip RPM PID of 140 rpm while the torque converter is commanded locked.",
@@ -94,7 +104,12 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "Color code from the lab manual: red = good, black/burnt = oxidation or slipping, milky/pink = coolant contamination. Match the finding to the statement — 'milkiness' is the coolant tell, not 'black and burnt'."),
 
   // ---------- A3 Manual Drivetrain ----------
-  q("a3-1", "A3", "A vehicle makes a growling noise that changes with engine speed when the clutch pedal is depressed. Which is the most likely cause?", ABCD, "B",
+  q("a3-1", "A3", "A manual-transmission vehicle growls with the clutch pedal depressed; the noise fades when the pedal is released. Which component is most suspect?", [
+    { id: "A", text: "Differential side bearing" },
+    { id: "B", text: "Clutch release bearing" },
+    { id: "C", text: "Propeller-shaft universal joint" },
+    { id: "D", text: "Tire tread cupping" },
+  ], "B",
     "The release (throw-out) bearing — it is only under load when the pedal is depressed. Pilot bearing noise appears with the pedal out; input shaft bearing noise does not change with the pedal."),
   tab("a3-2", "A3",
     "A clutch slips under load. Inspection through the opening shows the disk soaked in oil.",
@@ -124,7 +139,12 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "Edge wear points to camber. Toe wear feathers across the tread — the manual calls toe 'the primary tire-wear killer,' but its signature is feathering across the tread, not one clean worn edge."),
 
   // ---------- A5 Brakes ----------
-  q("a5-1", "A5", "The brake pedal pulsates only when the brakes are applied. This is most likely caused by:", ABCD, "B",
+  q("a5-1", "A5", "A brake pedal pulsates only while braking from highway speed. Which finding would best support a rotor/drum variation diagnosis?", [
+    { id: "A", text: "A soft pedal that improves after repeated pumping" },
+    { id: "B", text: "Rotor thickness variation or excessive lateral runout" },
+    { id: "C", text: "A low refrigerant charge" },
+    { id: "D", text: "A steady pull while cruising with no brake application" },
+  ], "B",
     "Out-of-round rear drums or warped front rotors. Pulsation is a mechanical runout issue — air gives a soft/spongy pedal, a failed cup gives a low pedal, worn pads give noise and long stopping distances."),
   tab("a5-2", "A5",
     "A brake pedal feels spongy.",
@@ -151,7 +171,12 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "The golden threshold: under 0.5 V across any high-current connection. Anything higher is excessive resistance — prove it with the DMM under load, not by feel."),
 
   // ---------- A7 HVAC ----------
-  q("a7-1", "A7", "During an A/C system test, the high-side pressure is very high and the low-side pressure is also higher than normal. The most likely cause is:", ABCD, "B",
+  q("a7-1", "A7", "During an A/C test, both high-side and low-side pressures are above specification. Condenser airflow is poor. What is the most likely cause?", [
+    { id: "A", text: "A restriction at the expansion device" },
+    { id: "B", text: "Insufficient condenser airflow from a failed fan" },
+    { id: "C", text: "A low refrigerant charge" },
+    { id: "D", text: "An evaporator temperature sensor reading too cold" },
+  ], "B",
     "A failed cooling fan. Both sides reading high means heat is not leaving the condenser — a lack of airflow across it. A restriction gives high high-side with LOW low-side; a low charge gives low both."),
   tab("a7-2", "A7",
     "A customer complains the A/C blows warm no matter where the temperature dial is set.",
