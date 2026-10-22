@@ -18,9 +18,9 @@ export function SiteNav() {
           </span>
           <span className="leading-none">
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
-              ASE VIRTUAL
+              LAT
             </span>
-            <span className="label-tech block text-[0.6rem]">Diagnose · Test · Learn · Master</span>
+            <span className="label-tech block text-[0.6rem]">Learning Automotive Technology</span>
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
