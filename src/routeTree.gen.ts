@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DiyRouteImport } from './routes/diy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ScenariosRouteImport } from './routes/scenarios'
+import { Route as StudyRouteImport } from './routes/study'
 import { Route as ScenarioScenarioIdRouteImport } from './routes/scenario.$scenarioId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const ScenariosRoute = ScenariosRouteImport.update({
   path: '/scenarios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudyRoute = StudyRouteImport.update({
+  id: '/study',
+  path: '/study',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScenarioScenarioIdRoute = ScenarioScenarioIdRouteImport.update({
   id: '/scenario/$scenarioId',
   path: '/scenario/$scenarioId',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/diy': typeof DiyRoute
   '/onboarding': typeof OnboardingRoute
   '/scenarios': typeof ScenariosRoute
+  '/study': typeof StudyRoute
   '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/diy': typeof DiyRoute
   '/onboarding': typeof OnboardingRoute
   '/scenarios': typeof ScenariosRoute
+  '/study': typeof StudyRoute
   '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/diy': typeof DiyRoute
   '/onboarding': typeof OnboardingRoute
   '/scenarios': typeof ScenariosRoute
+  '/study': typeof StudyRoute
   '/scenario/$scenarioId': typeof ScenarioScenarioIdRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/diy'
     | '/onboarding'
     | '/scenarios'
+    | '/study'
     | '/scenario/$scenarioId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/diy'
     | '/onboarding'
     | '/scenarios'
+    | '/study'
     | '/scenario/$scenarioId'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/diy'
     | '/onboarding'
     | '/scenarios'
+    | '/study'
     | '/scenario/$scenarioId'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   DiyRoute: typeof DiyRoute
   OnboardingRoute: typeof OnboardingRoute
   ScenariosRoute: typeof ScenariosRoute
+  StudyRoute: typeof StudyRoute
   ScenarioScenarioIdRoute: typeof ScenarioScenarioIdRoute
 }
 
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScenariosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/study': {
+      id: '/study'
+      path: '/study'
+      fullPath: '/study'
+      preLoaderRoute: typeof StudyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scenario/$scenarioId': {
       id: '/scenario/$scenarioId'
       path: '/scenario/$scenarioId'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiyRoute: DiyRoute,
   OnboardingRoute: OnboardingRoute,
   ScenariosRoute: ScenariosRoute,
+  StudyRoute: StudyRoute,
   ScenarioScenarioIdRoute: ScenarioScenarioIdRoute,
 }
 export const routeTree = rootRouteImport
