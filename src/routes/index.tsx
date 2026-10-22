@@ -16,13 +16,13 @@ import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ASE Virtual — Automotive Diagnostic & Skills Studio" },
+      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
       {
         name: "description",
         content:
           "An AI-era virtual automotive laboratory: hear the vehicle, drive it, scan it, measure it, and prove the root cause before you touch a wrench.",
       },
-      { property: "og:title", content: "ASE Virtual — Master the diagnosis before you touch the car" },
+      { property: "og:title", content: "Learning Automotive Technology (LAT) — Master the diagnosis before you touch the car" },
       {
         property: "og:description",
         content:
@@ -182,7 +182,7 @@ function Landing() {
               Simulation, not a repair manual
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              ASE Virtual is independent ASE-aligned preparation and training software. It is not
+              LAT — Learning Automotive Technology is independent ASE-aligned preparation and training software. It is not
               affiliated with or endorsed by ASE, and it does not issue certification. Always follow
               manufacturer service information and safety procedures on a real vehicle.
             </p>
@@ -191,7 +191,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        ASE Virtual · Educational simulation software · ASE-aligned preparation, not official ASE
+        Learning Automotive Technology (LAT) · Educational simulation software · ASE-aligned preparation, not official ASE
         certification
       </footer>
     </div>
