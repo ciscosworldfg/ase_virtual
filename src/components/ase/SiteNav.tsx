@@ -6,6 +6,7 @@ const links = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/study", label: "Study Hub" },
   { to: "/diy", label: "DIY Garage" },
+  { to: "/resources", label: "Resources" },
 ] as const;
 
 export function SiteNav() {
