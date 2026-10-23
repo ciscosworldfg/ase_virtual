@@ -65,7 +65,7 @@ export function ServiceRoleplay({
               {t.error && <p className="text-xs text-destructive">{t.error}</p>}
               {t.lines && t.lines.length > 0 && (
                 <div className="rounded-sm border border-border bg-panel p-3">
-                  <span className="label-tech">AI estimate</span>
+                  <span className="label-tech">AI draft — verify before use</span>
                   <table className="mt-2 w-full text-xs">
                     <tbody>
                       {t.lines.map((l, j) => (
@@ -82,12 +82,12 @@ export function ServiceRoleplay({
                     </tbody>
                   </table>
                   <div className="mt-2 flex justify-between font-display font-bold">
-                    <span>Labor subtotal</span>
+                    <span>Unverified labor subtotal</span>
                     <span className="readout text-primary">{$(laborSubtotal)}</span>
                   </div>
                   {hasUnpricedItems && (
                     <p className="mt-2 text-xs text-caution">
-                      Parts, fluids, and sublet items are not priced. Add verified shop/supplier prices before presenting a complete estimate.
+                      Labor hours are AI-generated and unverified. Parts, fluids, and sublet items are not priced. Confirm labor-guide hours and shop/supplier prices before presenting a customer estimate.
                     </p>
                   )}
                   {t.notes && <p className="mt-2 text-xs text-muted-foreground">Tech note: {t.notes}</p>}
