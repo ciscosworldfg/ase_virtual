@@ -9,7 +9,7 @@ export async function runResponses(instructions: string, input: unknown): Promis
   if (!key) {
     return {
       ok: false,
-      error: "Gemini is not configured on the server. Add GEMINI_API_KEY to the Vercel Production environment and redeploy.",
+      error: "AI instructor currently offline. Please use standard diagnostic guides.",
     };
   }
 
@@ -23,40 +23,55 @@ export async function runResponses(instructions: string, input: unknown): Promis
     };
   });
 
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": key,
+  try {
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": key,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: instructions }] },
+          contents,
+          generationConfig: { temperature: 0.2, maxOutputTokens: 1800 },
+        }),
+        signal: AbortSignal.timeout(20_000),
       },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: instructions }] },
-        contents,
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1800 },
-      }),
-    },
-  );
+    );
 
-  const payload = await res.json().catch(() => null) as {
-    error?: { message?: string; status?: string };
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  } | null;
+    const payload = await res.json().catch(() => null) as {
+      error?: { message?: string; status?: string };
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    } | null;
 
-  if (!res.ok) {
-    let message = payload?.error?.message ?? "Gemini request failed.";
-    if (res.status === 400) message = "Gemini rejected the request. Check the API key's API restrictions and request settings.";
-    else if (res.status === 401 || res.status === 403) message = "Gemini rejected the API key or its permissions. Verify the key in Google AI Studio and that the Generative Language API is enabled.";
-    else if (res.status === 429) message = "Gemini quota or rate limit reached. Check the project's Gemini API quota and billing status.";
-    return { ok: false, error: message };
+    if (!res.ok) {
+      if (res.status === 429) {
+        return { ok: false, error: "Gemini is busy or its rate limit has been reached. Please use the standard diagnostic guides and try again later." };
+      }
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, error: "The AI instructor is not available because its server configuration needs attention. Please use the standard diagnostic guides." };
+      }
+      return { ok: false, error: "AI instructor currently offline. Please use standard diagnostic guides." };
+    }
+
+    const text = (payload?.candidates?.[0]?.content?.parts ?? [])
+      .map((part) => part.text ?? "")
+      .join("")
+      .trim();
+
+    if (!text) {
+      return { ok: false, error: "Gemini returned no answer. Please use standard diagnostic guides and try again later." };
+    }
+    return { ok: true, text };
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    return {
+      ok: false,
+      error: timedOut
+        ? "The AI instructor took too long to respond. Please use standard diagnostic guides and try again."
+        : "AI instructor currently offline. Please use standard diagnostic guides.",
+    };
   }
-
-  const text = (payload?.candidates?.[0]?.content?.parts ?? [])
-    .map((part) => part.text ?? "")
-    .join("")
-    .trim();
-
-  if (!text) return { ok: false, error: "Gemini returned no answer. Try again or check the API quota." };
-  return { ok: true, text };
 }

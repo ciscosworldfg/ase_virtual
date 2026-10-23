@@ -4,12 +4,14 @@ import {
   EXAM_AREAS,
   EXAM_QUESTIONS,
   type ExamArea,
+  type ExamQuestion,
   readExamScores,
   writeExamScore,
 } from "@/lib/study/exam-bank";
 
 export function PracticeExam() {
   const [area, setArea] = useState<ExamArea | "ALL">("ALL");
+  const [sessionQuestions, setSessionQuestions] = useState<ExamQuestion[]>([]);
   const [started, setStarted] = useState(false);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -22,12 +24,21 @@ export function PracticeExam() {
     setBest(readExamScores() as Record<string, number | undefined>);
   }, []);
 
-  const questions = useMemo(
+  const availableQuestions = useMemo(
     () => (area === "ALL" ? EXAM_QUESTIONS : EXAM_QUESTIONS.filter((q) => q.area === area)),
     [area],
   );
+  const questions = sessionQuestions.length > 0 ? sessionQuestions : availableQuestions;
 
   const start = (a: ExamArea | "ALL") => {
+    const selected = a === "ALL" ? [...EXAM_QUESTIONS] : EXAM_QUESTIONS.filter((q) => q.area === a);
+    // Shuffle the question order for each attempt; keep option IDs stable because
+    // the IDs are the answer keys (especially for the semantic Tech A/Tech B choices).
+    for (let i = selected.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [selected[i], selected[j]] = [selected[j]!, selected[i]!];
+    }
+    setSessionQuestions(selected);
     setArea(a);
     setStarted(true);
     setIdx(0);
