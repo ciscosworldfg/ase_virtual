@@ -6,7 +6,7 @@ import type { Scenario, Vehicle } from "@/lib/sim/types";
 import { serviceRoleplay } from "@/lib/service.functions";
 import { buildCtx } from "./MasterTechPanel";
 
-type Line = { kind: string; desc: string; qty: number; unit: number; reason: string };
+type Line = { kind: string; desc: string; qty: number; unit: number | null; reason: string };
 type Turn = { customer: string; reply?: string; lines?: Line[]; notes?: string; error?: string };
 
 export function ServiceRoleplay({
@@ -54,7 +54,9 @@ export function ServiceRoleplay({
 
       <div className="mt-4 space-y-4">
         {turns.map((t, i) => {
-          const total = (t.lines ?? []).reduce((s, l) => s + l.qty * l.unit, 0);
+          const lines = t.lines ?? [];
+          const laborSubtotal = lines.reduce((s, l) => s + (l.kind === "labor" && l.unit !== null ? l.qty * l.unit : 0), 0);
+          const hasUnpricedItems = lines.some((l) => l.kind !== "labor" && l.unit === null);
           return (
             <div key={i} className="space-y-3">
               <div className="ml-auto flex max-w-[85%] gap-2 rounded-sm border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
@@ -74,15 +76,20 @@ export function ServiceRoleplay({
                             {l.reason && <div className="text-muted-foreground">{l.reason}</div>}
                           </td>
                           <td className="readout pr-2 text-right">{l.qty}{l.kind === "labor" ? " h" : ""}</td>
-                          <td className="readout text-right">{$(l.qty * l.unit)}</td>
+                          <td className="readout text-right">{l.unit === null ? "Price required" : $(l.qty * l.unit)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   <div className="mt-2 flex justify-between font-display font-bold">
-                    <span>Estimate total (pre-tax)</span>
-                    <span className="readout text-primary">{$(total)}</span>
+                    <span>Labor subtotal</span>
+                    <span className="readout text-primary">{$(laborSubtotal)}</span>
                   </div>
+                  {hasUnpricedItems && (
+                    <p className="mt-2 text-xs text-caution">
+                      Parts, fluids, and sublet items are not priced. Add verified shop/supplier prices before presenting a complete estimate.
+                    </p>
+                  )}
                   {t.notes && <p className="mt-2 text-xs text-muted-foreground">Tech note: {t.notes}</p>}
                 </div>
               )}
