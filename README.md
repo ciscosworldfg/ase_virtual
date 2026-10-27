@@ -1,10 +1,12 @@
-# Francisco Garcia
+# AISE Virtual
 
-ASE VIRTUAL — Automotive Diagnostic & Skills Studio
+AISE VIRTUAL — Automotive Industry Shop Experience
 
-AI-Powered Virtual Technician Training Platform
+**Plug and Learn. Diagnose. Repair. Master.**
 
-You are building a production-quality MVP for ASE Virtual, an immersive automotive diagnostic, training, assessment, and AI coaching platform.
+AI-guided automotive education through interactive vehicle simulations, diagnostic practice, and shop-oriented training.
+
+You are building a production-quality MVP for AISE Virtual, an immersive automotive diagnostic, training, assessment, and AI coaching platform.
 
 Do NOT build this as a generic educational website.
 
@@ -36,21 +38,35 @@ The user should hear the vehicle, observe symptoms, drive the vehicle, inspect i
 
 1. PRODUCT NAME
 
-Use:
+Official name:
 
-ASE Virtual
+AISE Virtual
 
-Subtitle:
+Full name:
 
-Diagnose. Test. Learn. Master.
+Automotive Industry Shop Experience
 
-Secondary positioning:
+Tagline:
 
-The AI-powered virtual automotive diagnostic laboratory.
+Plug and Learn.
 
-Create a premium logo treatment and automotive-tech visual identity.
+Supporting line:
 
----
+Diagnose. Repair. Master.
+
+Positioning:
+
+An AI-guided virtual automotive shop and diagnostic learning platform. Students learn through interactive simulations, structured instruction, evidence-based troubleshooting, and practical skill development.
+
+Brand direction:
+
+- Premium, professional wordmark
+- Deep navy, white, and electric blue
+- Bold, clean typography
+- No car or wrench symbols
+- Consistent use of “AISE Virtual” across product copy and documentation
+
+The product name is locked. Do not rename the platform or introduce alternate product names without explicit owner approval.
 
 2. MVP OBJECTIVE
 
