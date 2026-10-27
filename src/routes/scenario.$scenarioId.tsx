@@ -392,14 +392,22 @@ function Session() {
             <div className="panel-instrument p-4">
               <span className="label-tech">Evidence collected</span>
               <ul className="mt-3 space-y-1.5 text-sm">
-                {STAGES.filter((s) => s.id !== "diagnose" && s.id !== "service").map((s) => (
-                  <li key={s.id} className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{s.label}</span>
-                    <span className={toolsUsed.includes(s.id) ? "text-ok" : "text-muted-foreground"}>
-                      {toolsUsed.includes(s.id) ? "collected" : "pending"}
-                    </span>
-                  </li>
-                ))}
+                {STAGES.filter((s) => s.id !== "diagnose" && s.id !== "service").map((s) => {
+                  const complete =
+                    s.id === "serviceinfo"
+                      ? serviceInfoComplete
+                      : s.id === "evidence"
+                        ? testEvidenceComplete && hasDiagnosticToolUse
+                        : toolsUsed.includes(s.id);
+                  return (
+                    <li key={s.id} className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{s.label}</span>
+                      <span className={complete ? "text-ok" : "text-muted-foreground"}>
+                        {complete ? "recorded" : "pending"}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
               <p className="mt-3 text-xs text-muted-foreground">
                 Diagnosis unlocks only after the customer interview, inspection, applicable service-information record, and test-evidence record are complete. Manually entered measurements are learner-reported and are not independently validated by this gate.
