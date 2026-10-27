@@ -47,6 +47,8 @@ const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
   { id: "inspect", label: "Garage" },
+  { id: "serviceinfo", label: "Service information" },
+  { id: "evidence", label: "Test evidence" },
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
   { id: "diagnose", label: "Diagnosis" },
@@ -79,6 +81,11 @@ function Session() {
 
   const [state, setState] = useState<SimState>(() => initialState(vehicle));
   const [toolsUsed, setToolsUsed] = useState<string[]>([]);
+  const [serviceInfoSource, setServiceInfoSource] = useState("");
+  const [serviceInfoProcedure, setServiceInfoProcedure] = useState("");
+  const [serviceInfoReviewed, setServiceInfoReviewed] = useState(false);
+  const [testPerformed, setTestPerformed] = useState("");
+  const [testResult, setTestResult] = useState("");
   const [firstTry, setFirstTry] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [startedAt] = useState(() => Date.now());
@@ -100,7 +107,26 @@ function Session() {
     [state, vehicle, scenario.failure],
   );
 
+  const serviceInfoComplete =
+    serviceInfoReviewed &&
+    serviceInfoSource.trim().length >= 3 &&
+    serviceInfoProcedure.trim().length >= 10;
+  const testEvidenceComplete =
+    testPerformed.trim().length >= 3 && testResult.trim().length >= 5;
+  const hasDiagnosticToolUse =
+    toolsUsed.includes("testdrive") ||
+    toolsUsed.includes("scan") ||
+    toolsUsed.includes("meter") ||
+    toolsUsed.some((tool) => tool.startsWith("tool:"));
+  const diagnosticPrerequisitesComplete =
+    toolsUsed.includes("interview") &&
+    toolsUsed.includes("inspect") &&
+    serviceInfoComplete &&
+    testEvidenceComplete &&
+    hasDiagnosticToolUse;
+
   const finish = () => {
+    if (!diagnosticPrerequisitesComplete) return;
     const seconds = Math.round((Date.now() - startedAt) / 1000);
     // Areas that do not use the OBD-II scanner or DMM should not be penalised
     // for skipping stages that were never offered.
@@ -187,21 +213,37 @@ function Session() {
         </div>
 
         <nav className="mt-6 flex flex-wrap gap-2">
-          {STAGES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setStage(s.id)}
-              className={`rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
-                stage === s.id
-                  ? "border-primary bg-primary/15 text-primary"
-                  : toolsUsed.includes(s.id)
-                    ? "border-ok/50 bg-ok/10 text-ok"
-                    : "border-border bg-card text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+          {STAGES.map((s) => {
+            const blocked =
+              (s.id === "diagnose" && !diagnosticPrerequisitesComplete) ||
+              (s.id === "service" && !result);
+            return (
+              <button
+                key={s.id}
+                disabled={blocked}
+                title={
+                  s.id === "diagnose" && blocked
+                    ? "Complete the customer interview, inspection, service-information record, and test-evidence record first."
+                    : s.id === "service" && blocked
+                      ? "Complete the diagnostic decision sequence before opening the service desk."
+                      : undefined
+                }
+                onClick={() => {
+                  if (blocked) return;
+                  setStage(s.id);
+                }}
+                className={`rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  stage === s.id
+                    ? "border-primary bg-primary/15 text-primary"
+                    : toolsUsed.includes(s.id)
+                      ? "border-ok/50 bg-ok/10 text-ok"
+                      : "border-border bg-card text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {s.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_20rem]">
@@ -239,7 +281,93 @@ function Session() {
                 ),
             )}
 
-            {stage === "service" && (
+            {stage === "serviceinfo" && (
+              <section className="panel-instrument space-y-4 p-4" aria-labelledby="service-info-heading">
+                <div>
+                  <span className="label-tech text-primary">Required diagnostic gate</span>
+                  <h2 id="service-info-heading" className="mt-1 font-display text-lg font-bold uppercase tracking-wide">
+                    Applicable service information
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Record the source and the procedure or specification applicable to this vehicle and test condition.
+                    This form records your review; it does not supply or independently verify OEM data.
+                  </p>
+                </div>
+                <label className="block text-sm">
+                  <span className="mb-1 block font-semibold">Source / reference</span>
+                  <input
+                    value={serviceInfoSource}
+                    onChange={(event) => setServiceInfoSource(event.target.value)}
+                    placeholder="e.g. OEM service manual, section or document ID"
+                    className="w-full rounded-sm border border-border bg-background px-3 py-2"
+                    aria-label="Service information source or reference"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="mb-1 block font-semibold">Applicable procedure, specification, and conditions</span>
+                  <textarea
+                    value={serviceInfoProcedure}
+                    onChange={(event) => setServiceInfoProcedure(event.target.value)}
+                    placeholder="Record the relevant procedure/specification and the conditions it applies to. If unavailable, state that and do not invent a limit."
+                    rows={4}
+                    className="w-full rounded-sm border border-border bg-background px-3 py-2"
+                    aria-label="Applicable service procedure, specification, and conditions"
+                  />
+                </label>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={serviceInfoReviewed}
+                    onChange={(event) => setServiceInfoReviewed(event.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>I reviewed the referenced information for this vehicle and the stated test conditions.</span>
+                </label>
+                <p className={serviceInfoComplete ? "text-sm text-ok" : "text-sm text-muted-foreground"}>
+                  {serviceInfoComplete ? "Service-information record complete." : "Enter a source, record the applicable procedure/specification, and confirm review to continue."}
+                </p>
+              </section>
+            )}
+            {stage === "evidence" && (
+              <section className="panel-instrument space-y-4 p-4" aria-labelledby="test-evidence-heading">
+                <div>
+                  <span className="label-tech text-primary">Required diagnostic gate</span>
+                  <h2 id="test-evidence-heading" className="mt-1 font-display text-lg font-bold uppercase tracking-wide">
+                    Diagnostic test evidence
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Record a test you performed and its observed result. The platform does not independently validate manually entered readings.
+                  </p>
+                </div>
+                <label className="block text-sm">
+                  <span className="mb-1 block font-semibold">Test performed</span>
+                  <input
+                    value={testPerformed}
+                    onChange={(event) => setTestPerformed(event.target.value)}
+                    placeholder="e.g. scan live data at warm idle, voltage drop under load"
+                    className="w-full rounded-sm border border-border bg-background px-3 py-2"
+                    aria-label="Diagnostic test performed"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="mb-1 block font-semibold">Observed measurement / result and interpretation</span>
+                  <textarea
+                    value={testResult}
+                    onChange={(event) => setTestResult(event.target.value)}
+                    placeholder="Record the observed result, test conditions, and what it supports or rules out."
+                    rows={4}
+                    className="w-full rounded-sm border border-border bg-background px-3 py-2"
+                    aria-label="Observed diagnostic test result and interpretation"
+                  />
+                </label>
+                <p className={testEvidenceComplete && hasDiagnosticToolUse ? "text-sm text-ok" : "text-sm text-muted-foreground"}>
+                  {testEvidenceComplete && hasDiagnosticToolUse
+                    ? "Test-evidence record complete."
+                    : "Record a test and result, and open at least one applicable test-drive, scan, multimeter, or scenario-specific tool panel."}
+                </p>
+              </section>
+            )}
+            {stage === "service" && result && (
               <>
                 <ServiceRoleplay scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
                 <EstimateBuilder scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
@@ -274,7 +402,7 @@ function Session() {
                 ))}
               </ul>
               <p className="mt-3 text-xs text-muted-foreground">
-                Answering without collecting evidence lowers your testing-procedure score.
+                Diagnosis unlocks only after the customer interview, inspection, applicable service-information record, and test-evidence record are complete. Manually entered measurements are learner-reported and are not independently validated by this gate.
               </p>
             </div>
             <div className="rounded-sm border border-caution/50 bg-caution/10 p-4 text-xs text-caution">
