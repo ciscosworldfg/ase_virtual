@@ -6,13 +6,13 @@ import { useProfile } from "@/lib/progress";
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your training path | ASE Virtual" },
+      { title: "Set up your training path | AISE Virtual" },
       {
         name: "description",
         content:
-          "Tell ASE Virtual your goal and experience level so the diagnostic simulator and dashboard adapt to you.",
+          "Tell AISE Virtual your goal and experience level so the diagnostic simulator and dashboard adapt to you.",
       },
-      { property: "og:title", content: "Set up your training path | ASE Virtual" },
+      { property: "og:title", content: "Set up your training path | AISE Virtual" },
       {
         property: "og:description",
         content: "Choose your goal and experience level to tailor the diagnostic simulator.",

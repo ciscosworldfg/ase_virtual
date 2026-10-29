@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/ase/SiteNav";
 import { CustomerChat } from "@/components/ase/CustomerChat";
 import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
+import { EngineLab } from "@/components/ase/EngineLab";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
 const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
+  { id: "engine", label: "3D Engine Lab" },
   { id: "inspect", label: "Garage" },
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
@@ -91,6 +93,7 @@ function Session() {
 
   const useInterview = useCallback(() => markUsed("interview"), [markUsed]);
   const useDrive = useCallback(() => markUsed("testdrive"), [markUsed]);
+  const useEngine = useCallback(() => markUsed("engine"), [markUsed]);
   const useInspect = useCallback(() => markUsed("inspect"), [markUsed]);
   const useScan = useCallback(() => markUsed("scan"), [markUsed]);
   const useMeter = useCallback(() => markUsed("meter"), [markUsed]);
@@ -186,12 +189,15 @@ function Session() {
           </button>
         </div>
 
-        <nav className="mt-6 flex flex-wrap gap-2">
+        <nav
+          aria-label="Diagnostic session stages"
+          className="mt-6 flex gap-2 overflow-x-auto pb-2 [overscroll-behavior-x:contain] [touch-action:pan-x]"
+        >
           {STAGES.map((s) => (
             <button
               key={s.id}
               onClick={() => setStage(s.id)}
-              className={`rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
+              className={`min-h-11 shrink-0 rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.1em] transition-colors ${
                 stage === s.id
                   ? "border-primary bg-primary/15 text-primary"
                   : toolsUsed.includes(s.id)
@@ -217,6 +223,7 @@ function Session() {
               />
             )}
             {stage === "inspect" && <Garage points={scenario.inspection} onUse={useInspect} />}
+            {stage === "engine" && <EngineLab running={state.running} rpm={state.rpm} coolant={state.coolant} load={data.load} vehicle={vehicleName(vehicle)} onUse={useEngine} />}
             {stage === "scan" && (
               <ScanTool
                 data={data}
