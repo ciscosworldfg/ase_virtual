@@ -256,7 +256,7 @@ export function ScanTool({
           <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
             OBD-II Scan Tool
           </span>
-          <span className="label-tech text-ok">Link established</span>
+          <span className="label-tech text-muted-foreground">Scenario simulation</span>
         </div>
 
         <div className="flex border-b border-border">
