@@ -31,7 +31,7 @@ export function EngineLab({ running, rpm, coolant, load, vehicle, onUse }: {
   const selectedSystem = systems.find((s) => s.id === system)!;
 
   return (
-    <section className="panel-instrument overflow-hidden" onMouseEnter={onUse}>
+    <section className="panel-instrument overflow-hidden">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-panel px-4 py-3">
         <div>
           <p className="label-tech text-primary">Interactive powertrain lab</p>
@@ -47,10 +47,10 @@ export function EngineLab({ running, rpm, coolant, load, vehicle, onUse }: {
             <div className="flex flex-wrap gap-1.5">
               {systems.map((s) => {
                 const Icon = s.icon;
-                return <button key={s.id} onClick={() => setSystem(s.id)} className={`inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 text-xs font-semibold ${system === s.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"}`}><Icon className="h-3.5 w-3.5" />{s.label}</button>;
+                return <button key={s.id} onClick={() => { setSystem(s.id); onUse(); }} className={`inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 text-xs font-semibold ${system === s.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"}`}><Icon className="h-3.5 w-3.5" />{s.label}</button>;
               })}
             </div>
-            <button onClick={() => setMotion((v) => !v)} className="rounded-sm border border-border px-2.5 py-1.5 text-xs">{motion ? "Pause motion" : "Resume motion"}</button>
+            <button onClick={() => { setMotion((v) => !v); onUse(); }} className="rounded-sm border border-border px-2.5 py-1.5 text-xs">{motion ? "Pause motion" : "Resume motion"}</button>
           </div>
           <div className="relative overflow-hidden rounded-md border border-border bg-[#07111d]" style={{ perspective: "1000px" }}>
             <div className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(#17304a 1px, transparent 1px), linear-gradient(90deg, #17304a 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
@@ -72,8 +72,8 @@ export function EngineLab({ running, rpm, coolant, load, vehicle, onUse }: {
                   <path d="M191 202 L256 164 L514 195 L550 222 L487 259 L229 230Z" fill="#1a2a3a" stroke="#8ea2b5" strokeWidth="2" transform={`translate(0 ${-explode * .42})`}/>
                   {[0,1,2,3].map((i) => {
                     const x = 245 + i * 67;
-                    const pistonY = 276 + (motion && running ? Math.sin(Date.now()/160 + i * Math.PI) * 13 : 0);
-                    return <g key={i}>
+                    const pistonY = 276;
+                    return <g key={i} style={{ animation: motion && running ? "engine-piston .55s ease-in-out infinite alternate" : "none", animationDelay: `${i * -0.12}s`, transformBox: "fill-box", transformOrigin: "center" }}>
                       <path d={`M${x-22} 240 l13 -14 h28 l13 14 v110 l-12 12 h-30 l-12 -12Z`} fill="#152433" stroke="#91a5b8" strokeWidth="2" transform={`translate(0 ${-explode * .42})`}/>
                       <rect x={x-16} y={pistonY} width="32" height="50" rx="4" fill="url(#head-metal)" stroke="#d1dbe4" strokeWidth="2"/>
                       <path d={`M${x-13} ${pistonY+8} h26 M${x-13} ${pistonY+14} h26`} stroke="#2c4154" strokeWidth="3"/>
@@ -138,7 +138,7 @@ export function EngineLab({ running, rpm, coolant, load, vehicle, onUse }: {
                 </g>
               </svg>
             </div>
-            <style>{`@keyframes engine-flow { to { stroke-dashoffset: -38; } } @keyframes engine-crank-spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{`@keyframes engine-flow { to { stroke-dashoffset: -38; } } @keyframes engine-piston { from { transform: translateY(-9px); } to { transform: translateY(9px); } } @keyframes engine-crank-spin { to { transform: rotate(360deg); } }`}</style>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#24384b] bg-[#0b1826] px-3 py-2 text-[11px] text-slate-300">
               <span>Illustrative inline model · not an OEM CAD model</span>
               <span>Explode assembly: {explode}%</span>
@@ -146,11 +146,11 @@ export function EngineLab({ running, rpm, coolant, load, vehicle, onUse }: {
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <label htmlFor="engine-explode" className="text-xs font-semibold text-muted-foreground">Exploded view</label>
-            <input id="engine-explode" aria-label="Exploded engine assembly" type="range" min="0" max="100" value={explode} onChange={(e) => setExplode(Number(e.target.value))} className="min-w-32 flex-1 accent-primary" />
-            <button onClick={() => setExplode(0)} className="rounded-sm border border-border px-2.5 py-1.5 text-xs">Reset</button>
+            <input id="engine-explode" aria-label="Exploded engine assembly" type="range" min="0" max="100" value={explode} onChange={(e) => { setExplode(Number(e.target.value)); onUse(); }} className="min-w-32 flex-1 accent-primary" />
+            <button onClick={() => { setExplode(0); onUse(); }} className="rounded-sm border border-border px-2.5 py-1.5 text-xs">Reset</button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {PARTS.map((p) => <button key={p.id} onClick={() => setSelected(p.id)} className={`rounded-sm border px-2.5 py-1.5 text-xs ${selected === p.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{p.name}</button>)}
+            {PARTS.map((p) => <button key={p.id} onClick={() => { setSelected(p.id); onUse(); }} className={`rounded-sm border px-2.5 py-1.5 text-xs ${selected === p.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{p.name}</button>)}
           </div>
         </div>
         <aside className="space-y-4 p-4 sm:p-5">
