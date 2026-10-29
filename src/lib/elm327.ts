@@ -560,8 +560,11 @@ export class Elm327Client {
     this.stopPolling();
     try {
       const stored = await this.send("03");
-      if (!hexBytes(stored.toUpperCase()).includes("43"))
+      if (/NO DATA|\\?/.test(stored.toUpperCase())) {
+        this.mergeCodes([], "stored");
+      } else if (!hexBytes(stored.toUpperCase()).includes("43")) {
         throw new Error("ECU did not confirm the stored-code scan.");
+      }
       const pending = await this.send("07");
       if (/NO DATA|\?/.test(pending)) this.mergeCodes([], "pending");
       await this.send("0101");
@@ -579,16 +582,16 @@ export class Elm327Client {
       if (!hexBytes(raw.toUpperCase()).includes("44"))
         throw new Error("ECU did not confirm clearing. Codes were not marked cleared.");
       const stored = await this.send("03");
-      if (!hexBytes(stored.toUpperCase()).includes("43"))
+      if (/NO DATA|\\?/.test(stored.toUpperCase())) {
+        this.mergeCodes([], "stored");
+      } else if (!hexBytes(stored.toUpperCase()).includes("43")) {
         throw new Error(
           "ECU confirmed the clear but did not confirm the follow-up stored-code scan.",
         );
-      this.mergeCodes(
-        decodeDtcBytes(
-          hexBytes(stored.toUpperCase()).slice(hexBytes(stored.toUpperCase()).indexOf("43") + 1),
-        ),
-        "stored",
-      );
+      } else {
+        const storedBytes = hexBytes(stored.toUpperCase());
+        this.mergeCodes(decodeDtcBytes(storedBytes.slice(storedBytes.indexOf("43") + 1)), "stored");
+      }
       const pending = await this.send("07");
       const pendingBytes = hexBytes(pending.toUpperCase());
       if (pendingBytes.includes("47"))
