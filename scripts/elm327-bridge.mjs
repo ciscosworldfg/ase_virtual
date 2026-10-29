@@ -19,8 +19,8 @@ const HOST = process.argv[2] ?? "192.168.0.10";
 const PORT = Number(process.argv[3] ?? 35000);
 const WS_PORT = Number(process.argv[4] ?? 35001);
 
-const wss = new WebSocketServer({ port: WS_PORT });
-console.log(`[bridge] ws://localhost:${WS_PORT}  ->  tcp://${HOST}:${PORT}`);
+const wss = new WebSocketServer({ host: "127.0.0.1", port: WS_PORT });
+console.log(`[bridge] ws://127.0.0.1:${WS_PORT}  ->  tcp://${HOST}:${PORT}`);
 
 wss.on("connection", (ws) => {
   console.log("[bridge] dashboard connected, dialing dongle...");
@@ -36,10 +36,10 @@ wss.on("connection", (ws) => {
     busy = true;
     tcp.write(cmd.endsWith("\r") ? cmd : `${cmd}\r`);
     timer = setTimeout(() => {
-      busy = false;
-      buf = "";
-      next();
-    }, 2000);
+      console.error(`[bridge] no ELM327 prompt within 10s for command ${cmd}; closing to avoid response desynchronization`);
+      tcp.destroy(new Error("ELM327 response timeout"));
+      ws.close();
+    }, 10000);
   };
 
   tcp.on("connect", () => console.log("[bridge] dongle connected"));
