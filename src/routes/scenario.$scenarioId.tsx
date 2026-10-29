@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/ase/SiteNav";
 import { CustomerChat } from "@/components/ase/CustomerChat";
 import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
+import { EngineLab } from "@/components/ase/EngineLab";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
 const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
+  { id: "engine", label: "3D Engine Lab" },
   { id: "inspect", label: "Garage" },
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
@@ -91,6 +93,7 @@ function Session() {
 
   const useInterview = useCallback(() => markUsed("interview"), [markUsed]);
   const useDrive = useCallback(() => markUsed("testdrive"), [markUsed]);
+  const useEngine = useCallback(() => markUsed("engine"), [markUsed]);
   const useInspect = useCallback(() => markUsed("inspect"), [markUsed]);
   const useScan = useCallback(() => markUsed("scan"), [markUsed]);
   const useMeter = useCallback(() => markUsed("meter"), [markUsed]);
@@ -217,6 +220,7 @@ function Session() {
               />
             )}
             {stage === "inspect" && <Garage points={scenario.inspection} onUse={useInspect} />}
+            {stage === "engine" && <EngineLab running={state.running} rpm={state.rpm} coolant={state.coolant} load={data.load} vehicle={vehicleName(vehicle)} onUse={useEngine} />}
             {stage === "scan" && (
               <ScanTool
                 data={data}
