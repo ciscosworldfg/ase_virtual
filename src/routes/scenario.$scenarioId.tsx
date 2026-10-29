@@ -189,12 +189,15 @@ function Session() {
           </button>
         </div>
 
-        <nav className="mt-6 flex flex-wrap gap-2">
+        <nav
+          aria-label="Diagnostic session stages"
+          className="mt-6 flex gap-2 overflow-x-auto pb-2 [overscroll-behavior-x:contain] [touch-action:pan-x]"
+        >
           {STAGES.map((s) => (
             <button
               key={s.id}
               onClick={() => setStage(s.id)}
-              className={`rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
+              className={`min-h-11 shrink-0 rounded-sm border px-3 py-2 font-display text-xs font-semibold uppercase tracking-[0.1em] transition-colors ${
                 stage === s.id
                   ? "border-primary bg-primary/15 text-primary"
                   : toolsUsed.includes(s.id)
