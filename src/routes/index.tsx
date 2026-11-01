@@ -16,17 +16,17 @@ import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Industry Shop Experience" },
       {
         name: "description",
         content:
-          "An AI-era virtual automotive laboratory: hear the vehicle, drive it, scan it, measure it, and prove the root cause before you touch a wrench.",
+          "Automotive diagnostic training: explore virtual vehicles, test systems, interpret simulated scan data, and build evidence-based repair skills.",
       },
-      { property: "og:title", content: "Learning Automotive Technology (LAT) — Master the diagnosis before you touch the car" },
+      { property: "og:title", content: "AISE Virtual — Plug and Learn. Diagnose. Repair. Master." },
       {
         property: "og:description",
         content:
-          "Virtual test drives, OBD-II live data, multimeter testing and evidence-based diagnostic scoring for ASE-aligned training.",
+          "Virtual automotive training with a separate, read-only live OBD-II diagnostics workspace in development.",
       },
     ],
   }),
@@ -35,9 +35,9 @@ export const Route = createFileRoute("/")({
 
 const flow = [
   { icon: ClipboardList, title: "Customer complaint", body: "Interview a virtual customer who describes symptoms — never the diagnosis." },
-  { icon: Gauge, title: "Virtual test drive", body: "Drive the vehicle, watch the cluster, feel the fault appear under load." },
-  { icon: Activity, title: "Scan tool", body: "Read codes, freeze frame and live data that move with the simulation." },
-  { icon: Cable, title: "Measure it", body: "Place multimeter probes on real test points and interpret voltage drop." },
+  { icon: Gauge, title: "Virtual test drive", body: "Drive the simulated vehicle, watch the cluster, and observe the fault under load." },
+  { icon: Activity, title: "Scan tool", body: "Practice reading simulated codes, freeze frame and live data. Real adapter readings remain separate." },
+  { icon: Cable, title: "Measure it", body: "Place multimeter probes on virtual test points and interpret voltage drop." },
   { icon: Wrench, title: "Prove the cause", body: "Choose cause, confirmation test and repair — guessing scores lower." },
 ];
 
@@ -45,17 +45,17 @@ function Landing() {
   return (
     <div className="min-h-screen">
       <SiteNav />
-
       <section className="hero-surface relative overflow-hidden border-b border-border">
         <div className="tech-grid pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-7xl px-4 py-20 lg:py-28">
-          <p className="label-tech text-primary">The AI-powered virtual automotive diagnostic laboratory</p>
+          <p className="label-tech text-primary">Automotive Industry Shop Experience</p>
           <h1 className="mt-5 max-w-4xl font-display text-4xl font-bold uppercase leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-            Master the diagnosis before you touch the car.
+            Plug and Learn. Diagnose. Repair. Master.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-            Diagnose real-world problems, test vehicles, interpret scan data, and build
-            technician-level skill in a simulator that scores your reasoning — not your guessing.
+            Build technician-level skill through guided automotive diagnosis, hands-on virtual
+            systems, and evidence-based learning. Real vehicle diagnostics remain a separate,
+            read-only workflow.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
@@ -71,7 +71,6 @@ function Landing() {
               Explore the simulator
             </Link>
           </div>
-
           <div className="mt-14 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
             {[
               { k: "Simulated systems", v: "16" },
@@ -90,12 +89,10 @@ function Landing() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.2fr]">
           <div>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-wide">
-              Try a diagnosis right now
-            </h2>
+            <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Try a diagnosis right now</h2>
             <p className="mt-2 text-muted-foreground">
-              No account, no setup. Work one real fault from complaint to root cause in about a
-              minute — then take the same car into the full simulator with the scan tool,
+              No account, no setup. Work one training fault from complaint to root cause in about a
+              minute — then take the same vehicle into the full simulator with the scan tool,
               multimeter and test drive.
             </p>
           </div>
@@ -104,9 +101,7 @@ function Landing() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-bold uppercase tracking-wide">
-          One loop, done properly
-        </h2>
+        <h2 className="font-display text-2xl font-bold uppercase tracking-wide">One loop, done properly</h2>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Every scenario walks the same professional sequence. The platform tracks which evidence
           you actually gathered before you committed to an answer.
@@ -118,9 +113,7 @@ function Landing() {
                 <f.icon className="h-5 w-5 text-signal" />
                 <span className="readout text-xs text-muted-foreground">0{i + 1}</span>
               </div>
-              <h3 className="mt-4 font-display text-base font-semibold uppercase tracking-wide">
-                {f.title}
-              </h3>
+              <h3 className="mt-4 font-display text-base font-semibold uppercase tracking-wide">{f.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
             </li>
           ))}
@@ -131,16 +124,10 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="font-display text-2xl font-bold uppercase tracking-wide">
-                Live scenario library
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                Curated vehicle configurations with independently modeled failures.
-              </p>
+              <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Training scenario library</h2>
+              <p className="mt-2 text-muted-foreground">Curated vehicle configurations with independently modeled failures.</p>
             </div>
-            <Link to="/scenarios" className="text-sm font-semibold text-primary hover:underline">
-              View all scenarios →
-            </Link>
+            <Link to="/scenarios" className="text-sm font-semibold text-primary hover:underline">View all scenarios →</Link>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {SCENARIOS.map((s) => {
@@ -167,23 +154,18 @@ function Landing() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="panel-instrument p-6">
             <AudioLines className="h-5 w-5 text-primary" />
-            <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">
-              Synthesized engine audio
-            </h3>
+            <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">Synthesized engine audio</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sound responds to RPM, throttle, load and the injected failure. All audio in this MVP
-              is generated in-browser and clearly labeled as synthetic — it is not a recording of a
-              real vehicle.
+              Sound responds to simulated RPM, throttle, load and injected failures. Audio is
+              generated in-browser and is not a recording of a real vehicle.
             </p>
           </div>
           <div className="panel-instrument p-6">
             <ShieldAlert className="h-5 w-5 text-caution" />
-            <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">
-              Simulation, not a repair manual
-            </h3>
+            <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">Training, not a repair manual</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              LAT — Learning Automotive Technology is independent ASE-aligned preparation and training software. It is not
-              affiliated with or endorsed by ASE, and it does not issue certification. Always follow
+              AISE Virtual is independent ASE-aligned preparation software. It is not affiliated
+              with or endorsed by ASE, and it does not issue certification. Always follow
               manufacturer service information and safety procedures on a real vehicle.
             </p>
           </div>
@@ -191,8 +173,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        Learning Automotive Technology (LAT) · Educational simulation software · ASE-aligned preparation, not official ASE
-        certification
+        AISE Virtual · Automotive Industry Shop Experience · ASE-aligned educational software, not official ASE certification
       </footer>
     </div>
   );
