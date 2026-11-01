@@ -58,16 +58,16 @@ function Landing() {
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
-              to="/onboarding"
+              to="/workshop"
               className="rounded-sm bg-primary px-6 py-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Start diagnostic training
+              Enter the workshop
             </Link>
             <Link
-              to="/scenarios"
+              to="/engine-lab"
               className="rounded-sm border border-border bg-card px-6 py-3 font-display text-sm font-bold uppercase tracking-[0.14em] transition-colors hover:bg-accent"
             >
-              Explore the simulator
+              Explore the 3D engine
             </Link>
           </div>
           <div className="mt-14 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
