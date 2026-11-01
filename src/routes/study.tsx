@@ -6,6 +6,7 @@ import { FieldProtocols } from "@/components/study/FieldProtocols";
 import { RoadmapTracker } from "@/components/study/RoadmapTracker";
 import { DiagnosticWorksheet } from "@/components/study/DiagnosticWorksheet";
 import { CurriculumPanel } from "@/components/study/CurriculumPanel";
+import { SystemFlowsPanel } from "@/components/study/SystemFlowsPanel";
 
 export const Route = createFileRoute("/study")({
   head: () => ({
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/study")({
 
 const TABS = [
   { id: "curriculum", label: "Curriculum" },
+  { id: "flows", label: "System Flows" },
   { id: "exam", label: "Practice Exam" },
   { id: "protocols", label: "Field Protocols" },
   { id: "roadmap", label: "16-Week Roadmap" },
@@ -73,6 +75,7 @@ function StudyPage() {
 
         <div className="mt-8">
           {tab === "curriculum" && <CurriculumPanel />}
+          {tab === "flows" && <SystemFlowsPanel />}
           {tab === "exam" && <PracticeExam />}
           {tab === "protocols" && <FieldProtocols />}
           {tab === "roadmap" && <RoadmapTracker />}
