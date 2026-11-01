@@ -6,13 +6,13 @@ export const Route = createFileRoute("/engine-lab")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "3D Engine Lab — explore engine components | ASE Virtual" },
+      { title: "3D Engine Lab — explore engine components | AISE Virtual" },
       {
         name: "description",
         content:
           "Rotate, explode and inspect a generic procedural 3D engine: component names, related trouble codes and test-then-fix steps.",
       },
-      { property: "og:title", content: "3D Engine Lab | ASE Virtual" },
+      { property: "og:title", content: "3D Engine Lab | AISE Virtual" },
       { property: "og:description", content: "Interactive generic 3D engine model for component recognition training." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
