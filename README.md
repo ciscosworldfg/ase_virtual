@@ -2,7 +2,7 @@
 
 AISE VIRTUAL — Automotive Industry Shop Experience
 
-**Plug and Learn. Diagnose. Repair. Master.**
+**Diagnose. Test. Learn. Master.**
 
 AI-guided automotive education through interactive vehicle simulations, diagnostic practice, and shop-oriented training.
 
@@ -48,11 +48,7 @@ Automotive Industry Shop Experience
 
 Tagline:
 
-Plug and Learn.
-
-Supporting line:
-
-Diagnose. Repair. Master.
+Diagnose. Test. Learn. Master.
 
 Positioning:
 
