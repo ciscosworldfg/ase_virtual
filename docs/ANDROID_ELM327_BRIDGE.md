@@ -10,6 +10,18 @@ Provide a native Android companion that hosts the AISE Virtual web experience an
 - A JavaScript bridge exposes only connection status, supported live PID reads, DTC reads, and disconnect. No actuator commands, ECU writes, code clearing, adaptations, or programming.
 - Validate the loaded origin before enabling the JavaScript interface. Never expose the bridge to arbitrary remote pages.
 
+## Native-to-web message contract
+
+The native bridge sends one JSON object per message using these discriminators:
+
+- `status`: `connected` plus optional `elmVersion`, `protocol`, and `voltage`.
+- `response`: request correlation `id`, OBD command `cmd`, raw adapter payload `raw`, and boolean `success`.
+- `error`: optional request `id` and a constrained `message`: `NO DATA`, `UNABLE TO CONNECT`, `BUS ERROR`, or `timeout`.
+- `event`: asynchronous `disconnected`, `searching`, or `protocolFound` event.
+
+Example RPM response: `{"type":"response","id":"req-123","cmd":"010C","raw":"41 0C 1A F8","success":true}`.
+The payload decodes to 1,726 RPM: (0x1AF8 / 4). The web parser lives at `src/lib/obd/bridgeProtocol.ts`; malformed or unknown messages are rejected.
+
 ## Initial protocol
 1. Open TCP socket with bounded connect/read timeouts.
 2. Initialize with ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0.
@@ -26,7 +38,7 @@ Provide a native Android companion that hosts the AISE Virtual web experience an
 
 ## Current implementation status
 - [x] Remove the false Link established claim from the simulator scan tool.
-- [ ] Implement Android companion project and native Wi-Fi socket client.
+- [ ] Implement Android companion project and native Wi-Fi socket client.\n- [x] Define and validate the native-to-web JSON message contract; decode the sample RPM response.
 - [ ] Add a restricted JavaScript bridge and real-data UI mode.
 - [ ] Test against the user's specific ELM327 adapter and vehicle.
 - [ ] Verify supported PIDs, DTC parsing, reconnect behavior, and browser/app lifecycle.
