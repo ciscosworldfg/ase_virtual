@@ -30,6 +30,11 @@ export interface SceneOptions {
   onLabels: (labels: LabelPos[]) => void;
 }
 
+export interface EngineTelemetry {
+  rpm: number;
+  running: boolean;
+}
+
 export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions) {
   const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   R.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -57,6 +62,10 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
   let sel: Part | null = null;
   let hov: Part | null = null;
   let explode = 0, exS = 0, autoRotate = !opts.reducedMotion, showLabels = true;
+  let engineRpm = 0, engineAngle = 0;
+  let activeFaultCodes = new Set<string>();
+  let crankshaft: THREE.Mesh | null = null;
+  let pistonAssemblies: { piston: THREE.Mesh; rod: THREE.Mesh; phase: number; x: number; z: number }[] = [];
 
   const emitParts = () => opts.onParts(parts.map(({ id, name, desc, codes, fixed, removed }) => ({ id, name, desc, codes, fixed, removed })));
 
@@ -69,6 +78,8 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
   function build(E: EngineFamily) {
     disposeRoot();
     root = new THREE.Group(); S.add(root); parts = []; sel = null; hov = null;
+    crankshaft = null;
+    pistonAssemblies = [];
     const r = root;
     type PIn = { id: string; name: string; desc: string; codes: string[]; dir: THREE.Vector3; dist: number; g: THREE.Group; fixed?: boolean; parent?: THREE.Object3D };
     const part = (o: PIn) => {
@@ -149,6 +160,20 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
           grp(cy(0.04, 0.4, 0xff7a1a, x, 1.9, 0.3)), V(0, 1, 0), 1.2, [pc(670, num), "P0670"]);
       }
     });
+
+    // Educational cutaway mechanism: visible pistons and connecting rods are
+    // animated from crankshaft speed. This is a teaching visualization, not CAD.
+    const cylinderCount = Math.max(1, E.n);
+    crankshaft = cy(0.085, Math.max(2.2, cylinderCount * 0.58), 0x77818c, 0, -0.28, 1.28, "x");
+    r.add(crankshaft);
+    for (let i = 0; i < cylinderCount; i += 1) {
+      const x = (i - (cylinderCount - 1) / 2) * 0.58;
+      const piston = cy(0.17, 0.22, 0xc4ccd5, x, 0.62, 1.28, "y");
+      const rod = bx(0.075, 0.48, 0.075, 0xb8913f, x, 0.18, 1.28);
+      r.add(piston, rod);
+      pistonAssemblies.push({ piston, rod, phase: (i * Math.PI * 4) / cylinderCount, x, z: 1.28 });
+    }
+
     meshes = [];
     r.updateMatrixWorld(true);
     r.traverse((o) => {
@@ -167,7 +192,9 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
   function paint() {
     for (const m of meshes) {
       const p = m.userData.part as Part;
-      (m.material as THREE.MeshStandardMaterial).emissive.setHex(p === sel ? 0x7a4300 : p === hov ? 0x2a1c00 : 0);
+      const hasFault = p.codes.some((code) => activeFaultCodes.has(code));
+      const emissive = hasFault ? 0x7a1010 : p === sel ? 0x7a4300 : p === hov ? 0x2a1c00 : 0;
+      (m.material as THREE.MeshStandardMaterial).emissive.setHex(emissive);
     }
   }
   const byId = (id: string | null) => parts.find((p) => p.id === id) ?? null;
@@ -217,11 +244,16 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
   canvas.addEventListener("pointerup", onUp); canvas.addEventListener("pointercancel", onCancel);
   canvas.addEventListener("wheel", onWheel, { passive: false }); canvas.addEventListener("contextmenu", noMenu);
 
-  const ro = new ResizeObserver(() => {
-    const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
-    R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix();
-  });
+  const resize = () => {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    R.setSize(w, h, false);
+    C.aspect = w / h;
+    C.updateProjectionMatrix();
+  };
+  const ro = new ResizeObserver(resize);
   ro.observe(canvas);
+  resize();
 
   function updateLabels() {
     const w = canvas.clientWidth, h = canvas.clientHeight, placed: { x: number; y: number; r: number; b: number }[] = [], out: LabelPos[] = [];
@@ -247,13 +279,21 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
   }
 
   const clock = new THREE.Clock();
-  let raf = 0, lastFrame = 0, lastLabels = 0;
+  let lastFrame = 0, lastLabels = 0;
   function loop(now: number) {
-    raf = requestAnimationFrame(loop);
     if (document.hidden || now - lastFrame < 33) return;
     lastFrame = now;
     const dt = Math.min(clock.getDelta(), 0.05), ex = explode / 100;
     const k = opts.reducedMotion ? 1 : Math.min(1, dt * 6);
+    if (engineRpm > 0) engineAngle += (engineRpm * Math.PI * 2 * dt) / 60;
+    if (crankshaft) crankshaft.rotation.x = engineAngle;
+    for (const assembly of pistonAssemblies) {
+      const phase = engineAngle + assembly.phase;
+      const y = 0.62 + Math.cos(phase) * 0.2;
+      assembly.piston.position.set(assembly.x, y, assembly.z);
+      assembly.rod.position.set(assembly.x + Math.sin(phase) * 0.055, (y + 0.18) / 2, assembly.z);
+      assembly.rod.rotation.z = -Math.sin(phase) * 0.28;
+    }
     if (autoRotate && !opts.reducedMotion) rot.az += dt * 0.25;
     exS += (ex - exS) * k;
     const fit = (1 + exS * 0.75) * (C.aspect < 1 ? Math.min(1.9, (1 / C.aspect) * 0.85 + 0.15) : 1), rr = rot.r * fit, ty = tgt.y + exS * 0.6;
@@ -270,12 +310,20 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
     if (now - lastLabels > 100) { updateLabels(); lastLabels = now; }
     R.render(S, C);
   }
-  raf = requestAnimationFrame(loop);
+  R.setAnimationLoop(loop);
 
   return {
     setFamily(id: string) { const f = ENGINE_FAMILIES.find((e) => e.id === id); if (f) build(f); },
     select,
     setExplode(v: number) { explode = v; },
+    setTelemetry(value: EngineTelemetry) {
+      const rpm = Number.isFinite(value.rpm) ? Math.max(0, Math.min(8000, value.rpm)) : 0;
+      engineRpm = value.running ? rpm : 0;
+    },
+    setFaultCodes(codes: string[]) {
+      activeFaultCodes = new Set(codes.map((code) => code.trim().toUpperCase()).filter((code) => /^P[0-9A-F]{4}$/.test(code)));
+      paint();
+    },
     setAutoRotate(v: boolean) { autoRotate = v; },
     setShowLabels(v: boolean) { showLabels = v; },
     toggleRemove(id: string) { const p = byId(id); if (!p || p.fixed) return; p.removed = !p.removed; if (p.removed && sel === p) select(null); emitParts(); },
@@ -284,7 +332,7 @@ export function createEngineScene(canvas: HTMLCanvasElement, opts: SceneOptions)
     resetCamera() { Object.assign(rot, CAM0); tgt.set(0, 0.7, 0); },
     reset() { for (const p of parts) p.removed = false; explode = 0; select(null); emitParts(); },
     dispose() {
-      cancelAnimationFrame(raf); ro.disconnect();
+      R.setAnimationLoop(null); ro.disconnect();
       canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onCancel);
       canvas.removeEventListener("wheel", onWheel); canvas.removeEventListener("contextmenu", noMenu);
