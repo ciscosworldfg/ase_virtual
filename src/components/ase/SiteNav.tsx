@@ -7,7 +7,6 @@ const links = [
   { to: "/study", label: "Study Hub" },
   { to: "/diy", label: "DIY Garage" },
   { to: "/resources", label: "Resources" },
-  { to: "/engine-lab/index.html", label: "3D Engine Lab" },
 ] as const;
 
 export function SiteNav() {
@@ -36,6 +35,12 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
+          <a
+            href="/engine-lab/index.html"
+            className="rounded-sm px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            3D Engine Lab
+          </a>
           <Link
             to="/onboarding"
             className="ml-2 rounded-sm bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
