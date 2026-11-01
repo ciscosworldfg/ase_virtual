@@ -8,13 +8,13 @@ import { ASE_CATEGORIES } from "@/lib/sim/types";
 export const Route = createFileRoute("/scenarios")({
   head: () => ({
     meta: [
-      { title: "Diagnostic scenario library | ASE Virtual" },
+      { title: "Diagnostic scenario library | AISE Virtual" },
       {
         name: "description",
         content:
           "Browse virtual diagnostic scenarios by ASE area, difficulty and vehicle — misfires, brake pulsation, charging faults and more.",
       },
-      { property: "og:title", content: "Diagnostic scenario library | ASE Virtual" },
+      { property: "og:title", content: "Diagnostic scenario library | AISE Virtual" },
       {
         property: "og:description",
         content: "Pick a vehicle and a fault, then run the full diagnostic loop end to end.",

@@ -3,11 +3,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AISE Virtual — 3D Engine Lab</title>
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap");
 :root{--bg:#0a1730;--panel:#0f2142;--ink:#ffffff;--mut:#a9bbd6;--line:#22406e;--acc:#2f8cff;--chip:#12305e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--panel)}
-h1{font-size:15px;margin:0 8px 0 0}
+h1{font:700 18px/1.2 "Barlow Condensed",Inter,sans-serif;margin:0 8px 0 0}
 button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
 button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
 main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 340px}

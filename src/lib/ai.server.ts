@@ -3,14 +3,12 @@ export type AiResult = { ok: true; text: string } | { ok: false; error: string }
 /**
  * Calls Google's Gemini API from the server.
  * Preferred deployment variable: GEMINI_API_KEY.
- * Compatibility fallback: LAT_LEARNING_AUTOMOTIVE_TECH.
- * Both variables must be configured as server-side Vercel environment variables;
+ * Configure GEMINI_API_KEY as a server-side Vercel environment variable;
  * do not prefix either with VITE_ or expose either value to browser code.
  */
 export async function runResponses(instructions: string, input: unknown): Promise<AiResult> {
   const key =
-    process.env["GEMINI_API_KEY"]?.trim() ||
-    process.env["LAT_LEARNING_AUTOMOTIVE_TECH"]?.trim();
+    process.env["GEMINI_API_KEY"]?.trim();
 
   if (!key) {
     return {
