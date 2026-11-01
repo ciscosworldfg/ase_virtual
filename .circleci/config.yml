@@ -1,0 +1,29 @@
+version: 2.1
+
+jobs:
+  verify:
+    docker:
+      - image: cimg/node:22.14
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Install Bun
+          command: |
+            curl -fsSL https://bun.sh/install | bash
+            echo 'export BUN_INSTALL="$HOME/.bun"' >> "$BASH_ENV"
+            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$BASH_ENV"
+      - run:
+          name: Install locked dependencies
+          command: bun install --frozen-lockfile
+      - run:
+          name: Lint
+          command: bun run lint
+      - run:
+          name: Production build
+          command: bun run build
+
+workflows:
+  verify:
+    jobs:
+      - verify

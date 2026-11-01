@@ -19,9 +19,9 @@ export function SiteNav() {
           </span>
           <span className="leading-none">
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
-              LAT
+              AISE VIRTUAL
             </span>
-            <span className="label-tech block text-[0.6rem]">Learning Automotive Technology</span>
+            <span className="label-tech block text-[0.6rem]">Diagnose · Test · Learn · Master</span>
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
@@ -35,6 +35,12 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
+          <a
+            href="/engine-lab/index.html"
+            className="rounded-sm px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            3D Engine Lab
+          </a>
           <Link
             to="/onboarding"
             className="ml-2 rounded-sm bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
@@ -42,6 +48,7 @@ export function SiteNav() {
             Start Training
           </Link>
         </nav>
+        <a href="/engine-lab/index.html" className="ml-auto rounded-sm border border-primary/60 px-3 py-2 text-xs font-semibold text-primary sm:hidden">3D Engine Lab</a>
       </div>
     </header>
   );

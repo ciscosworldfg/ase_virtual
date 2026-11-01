@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AISE Virtual — 3D Engine Lab</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap");
+:root{--bg:#0a1730;--panel:#0f2142;--ink:#ffffff;--mut:#a9bbd6;--line:#22406e;--acc:#2f8cff;--chip:#12305e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{display:flex;gap:8px;align-items:center;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{font:700 18px/1.2 "Barlow Condensed",Inter,sans-serif;margin:0 8px 0 0}
+button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 340px}
+#stage{position:relative;min-height:0}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#hint{position:absolute;left:10px;bottom:8px;color:var(--mut);font-size:12px;pointer-events:none}
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+aside>*{flex-shrink:0}
+.chip{display:inline-block;background:var(--chip);border:1px solid var(--acc);border-radius:6px;padding:2px 6px;margin:2px 4px 2px 0;font-size:12px}
+.chip b{font-family:ui-monospace,monospace}small,.mut{color:var(--mut)}
+#list{display:flex;flex-direction:column;gap:2px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+#list div{padding:4px 8px;cursor:pointer;display:flex;justify-content:space-between;gap:6px}#list div.sel{background:var(--chip)}#list div.rm{opacity:.45;text-decoration:line-through}
+@media (max-width:760px){main{grid-template-columns:1fr;grid-template-rows:52vh 1fr}aside{border-left:0;border-top:1px solid var(--line)}}
+.simtag{background:#ffcc00;color:#0a1730;font-weight:700;border-radius:6px;padding:2px 6px;font-size:11px}
+#err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:20px;text-align:center;background:var(--bg)}
+#err div{max-width:420px}#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.tag{color:var(--mut);font-size:12px}
+.scanner-controls{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.scanner-controls button:disabled{opacity:.45;cursor:default}
+#bridge{width:100%;min-width:0;padding:7px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;font:inherit}
+#wifi-status,#wifi-error{overflow-wrap:anywhere}#wifi-error{color:var(--mut)}
+#readings{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}#readings span{background:var(--chip);padding:4px 6px;border-radius:4px;font-size:12px}
+:root{--metal:#bdc7d0;--dark-metal:#59636c;--plastic:#282d32;--rubber:#171b1e;--ceramic:#f3f1e9;--brass:#c7a66a;--cast:#786f65;--warning:#ffcc00;--selected:#ffb84d}
+#verification{position:absolute;left:10px;top:10px;max-width:calc(100% - 20px);color:var(--warning);font-size:11px;background:var(--bg);padding:4px 6px;border-left:2px solid var(--warning);pointer-events:none}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}.part-label{position:absolute;max-width:160px;border-radius:4px;padding:3px 6px;background:var(--panel);border:1px solid var(--line);font-size:11px;line-height:1.25;pointer-events:auto;text-align:left;overflow-wrap:normal;box-shadow:none}
+.part-label.active{border-color:var(--selected);color:var(--selected)}.part-label::before{content:"";width:5px;height:5px;display:inline-block;background:var(--acc);margin-right:5px;border-radius:50%}.label-line{position:absolute;height:1px;background:var(--acc);transform-origin:left center;opacity:.6}
+#inspection{border-bottom:1px solid var(--line);padding-bottom:10px}#inspection[hidden]{display:none}#detail-canvas{width:100%;height:200px;cursor:grab}#detail-canvas:active{cursor:grabbing}#inspect-name{font-size:15px;margin:0}#recognition{color:var(--mut);font-size:12px;margin:4px 0}#inspect-status{color:var(--warning);font-size:11px}
+:root{--danger:#ff6978;--live:#56d5b5}
+main{grid-template-columns:minmax(0,1fr) 390px}
+#obd-dashboard{border-bottom:1px solid var(--line);padding-bottom:12px}.dashboard-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.dashboard-heading h2{font-size:17px;margin:0}.dashboard-heading .mut{font-size:11px}.dashboard-heading button{width:36px;height:36px;padding:0;font-size:18px}.dashboard-summary{display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--live);margin:8px 0}.dashboard-summary .mil-on{color:var(--danger)}.measurement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.measurement{border:1px solid var(--line);border-radius:4px;padding:8px;min-width:0;background:var(--bg)}.measurement-label{color:var(--mut);font-size:11px;min-height:16px}.measurement-value{display:flex;align-items:baseline;gap:5px;min-height:32px}.measurement-value strong{font-family:ui-monospace,monospace;font-size:23px;font-weight:600}.measurement-value span{font-size:11px;color:var(--mut)}.measurement canvas{height:30px;width:100%;cursor:default;touch-action:auto}.measurement small{font-size:10px}.measurement.stale small{color:var(--warning)}#engine-dtc{position:absolute;bottom:32px;left:10px;right:10px;max-width:520px;background:var(--panel);border-left:3px solid var(--danger);padding:7px 9px;font-size:11px;pointer-events:none}#engine-dtc[hidden]{display:none}#related-parts{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}#related-parts button{font-size:11px;padding:4px 6px}#dtcs button.active{border-color:var(--danger);color:var(--danger)}
+@media(max-width:760px){main{grid-template-columns:1fr;grid-template-rows:52vh 1fr}#engine-dtc{bottom:8px;font-size:10px}aside{overflow:visible}body{height:auto;min-height:100%}main{flex:none}.measurement-value strong{font-size:22px}}
+@media(max-width:760px){.part-label{max-width:116px;font-size:10px}#hint{display:none}#detail-canvas{height:180px}}
+</style></head><body>
+<header><h1>AISE Virtual — 3D Engine Lab</h1><span class="tag">Plug and Learn. Diagnose. Repair. Master.</span><span id="tabs"></span>
+<label><input type="checkbox" id="auto" checked> Auto-rotate</label>
+<label><input type="checkbox" id="label-toggle" checked> Part labels</label>
+<label>Explode <input type="range" id="ex" min="0" max="100" value="0"></label>
+<button id="rcam">Reset camera</button><button id="reset">Reset all</button></header>
+<main><div id="stage"><canvas id="cv" aria-label="Interactive 3D engine model"></canvas><div id="verification">Generic V6 · J35A6 details approximate / unverified</div><div id="labels" aria-label="Engine part labels"></div><div id="engine-dtc" hidden role="status"></div><div id="load">Loading 3D engine…</div><div id="err" role="alert"><div><h3>3D view could not start</h3><p id="errmsg" class="mut"></p><button onclick="location.reload()">Try again</button></div></div><div id="hint">Drag to orbit · right-drag / Shift-drag / two-finger drag to pan · scroll/pinch to zoom · click a part</div></div>
+<aside><section id="obd-dashboard" aria-label="OBD-II live dashboard"></section><div id="scan"><b>Trouble codes</b> <span id="src" class="chip">NO SOURCE</span>
+<details id="wifi-settings" open><summary><b>ELM327 Wi-Fi</b></summary>
+<label for="bridge" class="mut">Bridge address</label><input id="bridge" type="url" value="ws://localhost:35001" spellcheck="false" autocomplete="off">
+<div class="scanner-controls"><button id="wifi-connect">Connect Wi-Fi</button><button id="wifi-disconnect" disabled>Disconnect</button><button id="wifi-sync" disabled>Sync DTCs</button></div>
+<div id="wifi-status" role="status" aria-live="polite">Disconnected</div><div id="wifi-error" role="alert"></div>
+<div id="readings" hidden></div><a href="elm327-setup.md" target="_blank" rel="noopener" class="mut">Wi-Fi setup &amp; bridge download</a>
+</details><div id="scan-label" class="simtag" style="display:inline-block;margin-top:4px">TRAINING MODE — NOT FROM A VEHICLE</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button id="sim">Simulate fault</button><button id="chal">Challenge me</button><button id="clr">Clear scan</button></div>
+<div id="dtcs" class="mut">No codes read.</div><div id="msg"></div><div id="related-parts" aria-label="Related engine components"></div></div>
+<section id="inspection" hidden><h2 id="inspect-name"></h2><canvas id="detail-canvas" aria-label="Enlarged selected engine component"></canvas><p id="recognition"></p><div id="inspect-status">Approximate generic shape · J35A6 fit, dimensions and location unverified</div></section>
+<details><summary><b>Smog / emissions basics</b></summary><ul class="mut" style="margin:6px 0;padding-left:18px">
+<li><b>Readiness monitors</b> (misfire, fuel system, components, catalyst, EVAP, O2 sensor and heater, EGR) must report “complete” before most smog tests.</li>
+<li><b>Clearing codes resets monitors.</b> A drive cycle is needed afterwards, so never clear codes just before a test.</li>
+<li><b>Misfire or rich/lean faults</b> damage the catalyst; fix them before blaming a P0420.</li>
+<li><b>EVAP leaks</b> (e.g. loose cap) cause failures with no driveability symptom.</li>
+<li><b>Permanent codes (Mode 0A)</b> clear only when the ECU’s own test passes, not by erasing codes.</li>
+<li>Test rules vary by state/country: follow your local program.</li></ul></details>
+<div id="info"></div><div id="list"></div>
+<small>Educational model: simplified, approximate geometry, not to scale, not OEM CAD, not yet a Honda J35A6. Generic descriptions. A trouble code points to a circuit or system; it does not prove the part has failed. Always follow the vehicle’s service information. Planned modules: transmission, brakes, suspension, electrical.</small></aside></main>
+<script>function fail(m){document.getElementById("load").style.display="none";const e=document.getElementById("err");e.style.display="flex";document.getElementById("errmsg").textContent=m}
+window.addEventListener("error",e=>{if(!window.__ok)fail("Error while starting: "+(e.message||"unknown"))});</script>
+<script src="three.min.js" onerror="fail('The 3D library file failed to load. Check your connection and try again.')"></script>
+<script type="module">
+import { ElmWifi, relatedParts } from './elm327.js';
+import { createComponentGeometry } from './component-geometry.js';
+import { createObdDashboard } from './obd-dashboard.js';
+(function(){const c=document.createElement("canvas");if(!(c.getContext("webgl2")||c.getContext("webgl")))throw new Error("WebGL is not available in this browser or device. Try an up-to-date Chrome on Android/desktop, or enable hardware acceleration.")})();
+const $=s=>document.querySelector(s);
+const cv=$("#cv"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,.1,100);
+R.setPixelRatio(Math.min(devicePixelRatio,1.5));
+S.add(new THREE.HemisphereLight(0xffffff,0x445566,.95));const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(4,7,5);S.add(dl);
+const MT=c=>new THREE.MeshStandardMaterial({color:c,metalness:.45,roughness:.5});
+const bx=(w,h,d,c,x=0,y=0,z=0)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MT(c));m.position.set(x,y,z);return m};
+const cy=(r,h,c,x=0,y=0,z=0,ax="y")=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),MT(c));m.position.set(x,y,z);if(ax=="x")m.rotation.z=Math.PI/2;if(ax=="z")m.rotation.x=Math.PI/2;return m};
+const grp=(...a)=>{const g=new THREE.Group();a.forEach(m=>g.add(m));return g};
+const V=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
+const css=getComputedStyle(document.documentElement),palette=Object.fromEntries(['metal','darkMetal','plastic','rubber','ceramic','brass','cast'].map(key=>[key,css.getPropertyValue('--'+key.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())).trim()]));
+const refine=createComponentGeometry(THREE,palette);
+const recognition={alt:'Vented aluminum housing, mounting ears and grooved belt pulley.',int:'Six curved intake runners feeding two banks from a common plenum.',thr:'Open circular bore, brass butterfly plate and black actuator housing.',maf:'Intake tube with a sensor probe and electrical connector.',coil:'Black coil housing, rubber plug boot and side connector.',plug:'White ribbed ceramic, hex nut, threaded shell and electrode.',inj:'Metal nozzle, two rubber O-rings and a side electrical connector.',ect:'Cast housing, coolant hose neck and a threaded sensor.',crk:'Probe nose, mounting tab and electrical connector.',cam:'Probe nose, mounting tab and electrical connector.',map:'Pressure probe and keyed connector.',oilp:'Threaded brass base, hex nut and electrical connector.',knk:'Ring-shaped sensing body with a center mounting bore.',vvt:'Cylindrical metal spool, mounting flange and electrical connector.',cov:'Ribbed cover with coil openings, flange bolts and oil filler cap.',head:'Cast head with intake/exhaust port openings and flange bolts.',exh:'Three curved exhaust runners converging into a collector.',rail:'Metal fuel tube with injector outlets and mounting tabs.',pan:'Sump body, bolted flange and drain plug.',pulley:'Grooved belt rim, damper hub and center retaining bolt.',block:'Cast crankcase with flanges, ribs and bolt heads.',egr:'Metal valve base, cylindrical actuator and exhaust passage.'};
+const detailR=new THREE.WebGLRenderer({canvas:$('#detail-canvas'),antialias:true,alpha:true});detailR.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const detailS=new THREE.Scene(),detailC=new THREE.PerspectiveCamera(35,1,.01,100);detailS.add(new THREE.HemisphereLight(0xffffff,0x445566,1.4));const detailLight=new THREE.DirectionalLight(0xffffff,2);detailLight.position.set(3,4,5);detailS.add(detailLight);let detailModel=null;
+const detailCanvas=$('#detail-canvas');let detailDrag=null;
+detailCanvas.addEventListener('pointerdown',e=>{if(!detailModel)return;detailCanvas.setPointerCapture(e.pointerId);detailDrag={id:e.pointerId,x:e.clientX,y:e.clientY}});
+detailCanvas.addEventListener('pointermove',e=>{if(!detailModel||detailDrag?.id!==e.pointerId)return;detailModel.rotation.y+=(e.clientX-detailDrag.x)*.012;detailModel.rotation.x+=(e.clientY-detailDrag.y)*.012;detailDrag.x=e.clientX;detailDrag.y=e.clientY});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])detailCanvas.addEventListener(event,()=>{detailDrag=null});
+function inspect(p){$('#inspection').hidden=!p;if(!p)return;$('#inspect-name').textContent=p.name;$('#recognition').textContent=recognition[p.id.replace(/\d+$/,'')]||'Approximate educational component.';
+ if(detailModel){detailS.remove(detailModel);detailModel.traverse(m=>{if(m.isMesh)m.material.dispose()})}const metadata=[];p.g.traverse(m=>{metadata.push([m,m.userData]);m.userData={}});try{detailModel=p.g.clone(true)}finally{metadata.forEach(([m,data])=>m.userData=data)}detailModel.position.set(0,0,0);detailModel.rotation.set(0,0,0);detailModel.visible=true;detailModel.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.emissive.setHex(0)}});detailS.add(detailModel);
+ const sphere=new THREE.Box3().setFromObject(detailModel).getBoundingSphere(new THREE.Sphere());detailModel.position.sub(sphere.center);const canvas=$('#detail-canvas'),w=canvas.clientWidth,h=canvas.clientHeight;detailR.setSize(w,h,false);detailC.aspect=w/h;detailC.updateProjectionMatrix();const distance=sphere.radius/Math.sin(THREE.MathUtils.degToRad(17.5))*1.18;detailC.position.set(distance*.6,distance*.35,distance*.72);detailC.lookAt(0,0,0);detailR.render(detailS,detailC);
+}
+const labelNames={block:'Engine block',pan:'Oil pan',alt:'Alternator',int:'Intake manifold',thr:'Throttle body',ect:'Coolant sensor',maf:'MAF sensor',crk:'Crank sensor',cov0:'Valve cover · B1',cov1:'Valve cover · B2'};
+function makeLabels(){ $('#labels').replaceChildren();for(const p of parts){p.line=document.createElement('span');p.line.className='label-line';p.line.hidden=true;p.label=document.createElement('button');p.label.className='part-label';p.label.textContent=labelNames[p.id]||p.name.replace(' – ',' · ');p.label.setAttribute('aria-label','Inspect '+p.name);p.label.onclick=()=>pick(p);p.label.hidden=true;$('#labels').append(p.line,p.label);p.anchor=new THREE.Box3().setFromObject(p.g).getCenter(new THREE.Vector3());p.g.worldToLocal(p.anchor)}}
+function updateLabels(){const w=cv.clientWidth,h=cv.clientHeight,placed=[];const candidates=[...parts].sort((a,b)=>(b===sel?100:b===hov?90:fault.has(b)?80:0)-(a===sel?100:a===hov?90:fault.has(a)?80:0));let count=0;
+ for(const p of candidates){p.label.hidden=true;p.line.hidden=true;if(!$('#label-toggle').checked||p.removed||!p.g.visible||(!labelNames[p.id]&&p!==sel&&p!==hov&&!fault.has(p)))continue;if(count>=(w<600?5:9))continue;
+ const projected=p.g.localToWorld(p.anchor.clone()).project(C);if(projected.z>1||projected.z< -1)continue;const lw=Math.min(w<600?116:160,p.label.textContent.length*6+18),lh=30,px=(projected.x+1)*w/2,py=(1-projected.y)*h/2;
+ let spot;for(const dy of [-38,8,-75,44]){const x=Math.max(8,Math.min(w-lw-8,px-lw/2)),y=Math.max(44,Math.min(h-lh-38,py+dy));const rect={x,y,r:x+lw,b:y+lh};if(!placed.some(q=>rect.x<q.r+5&&rect.r>q.x-5&&rect.y<q.b+5&&rect.b>q.y-5)){spot=rect;break}}
+ if(!spot)continue;placed.push(spot);p.label.hidden=false;p.label.style.left=spot.x+'px';p.label.style.top=spot.y+'px';p.label.classList.toggle('active',p===sel);const lx=spot.x+lw/2,ly=spot.y+lh/2;p.line.hidden=false;p.line.style.left=px+'px';p.line.style.top=py+'px';p.line.style.width=Math.hypot(lx-px,ly-py)+'px';p.line.style.transform=`rotate(${Math.atan2(ly-py,lx-px)}rad)`;count++;
+ }}
+
+/* DTC titles (SAE generic). Cylinder-indexed codes are generated. */
+const T={P0010:"“A” Camshaft Position Actuator Circuit (Bank 1)",P0011:"“A” Camshaft Timing Over-Advanced/Performance (Bank 1)",P0020:"“A” Camshaft Position Actuator Circuit (Bank 2)",P0021:"“A” Camshaft Timing Over-Advanced/Performance (Bank 2)",P0016:"Crankshaft/Camshaft Position Correlation (Bank 1 Sensor A)",P0087:"Fuel Rail/System Pressure Too Low",P0101:"Mass Air Flow Circuit Range/Performance",P0102:"Mass Air Flow Circuit Low",P0103:"Mass Air Flow Circuit High",P0106:"MAP/Barometric Pressure Range/Performance",P0107:"MAP Circuit Low",P0108:"MAP Circuit High",P0117:"Coolant Temp Circuit Low",P0118:"Coolant Temp Circuit High",P0121:"Throttle/Pedal Position Sensor A Range/Performance",P0122:"Throttle/Pedal Position Sensor A Circuit Low",P0123:"Throttle/Pedal Position Sensor A Circuit High",P0128:"Coolant Thermostat (Temp Below Regulating Temp)",P0171:"System Too Lean (Bank 1)",P0174:"System Too Lean (Bank 2)",P0190:"Fuel Rail Pressure Sensor Circuit",P0191:"Fuel Rail Pressure Sensor Range/Performance",P0234:"Turbo/Supercharger Overboost",P0236:"Turbo Boost Sensor A Range/Performance",P0299:"Turbo/Supercharger Underboost",P0300:"Random/Multiple Cylinder Misfire",P0325:"Knock Sensor 1 Circuit (Bank 1)",P0327:"Knock Sensor 1 Circuit Low (Bank 1)",P0330:"Knock Sensor 2 Circuit (Bank 2)",P0335:"Crankshaft Position Sensor A Circuit",P0336:"Crankshaft Position Sensor A Range/Performance",P0340:"Camshaft Position Sensor A Circuit (Bank 1)",P0341:"Camshaft Position Sensor A Range/Performance (Bank 1)",P0345:"Camshaft Position Sensor A Circuit (Bank 2)",P0401:"EGR Flow Insufficient",P0402:"EGR Flow Excessive",P0420:"Catalyst Efficiency Below Threshold (Bank 1)",P0430:"Catalyst Efficiency Below Threshold (Bank 2)",P0520:"Engine Oil Pressure Sensor/Switch Circuit",P0521:"Engine Oil Pressure Sensor Range/Performance",P0522:"Engine Oil Pressure Sensor Low",P0523:"Engine Oil Pressure Sensor High",P0562:"System Voltage Low",P0563:"System Voltage High",P0670:"Glow Plug Module Control Circuit",P2002:"Diesel Particulate Filter Efficiency Below Threshold (Bank 1)",P2135:"Throttle/Pedal Position Sensor A/B Voltage Correlation"};
+const pc=(b,n)=>"P"+String(b+n).padStart(4,"0");
+const cylT=(c,n)=>{const b=+c.slice(1,5)-n;return {300:`Cylinder ${n} Misfire Detected`,200:`Injector Circuit/Open – Cylinder ${n}`,350:`Ignition Coil ${"ABCDEF"[n-1]} Primary/Secondary Circuit`,670:`Cylinder ${n} Glow Plug Circuit`}[b]};
+const title=c=>T[c]||cylT(c,+c.slice(3)%10||+c.slice(2))||"";
+
+const ENG={
+ v4:{label:"V4",v:1,n:4,fuel:"port",vvt:0,egr:1,turbo:0,knock:1,thr:1,blurb:"Compact 4-cylinder in a V layout (two banks of two, 60° here). Gasoline, port injection, coil-on-plug."},
+ v6:{v:1,n:6,fuel:"port",vvt:1,egr:1,turbo:0,knock:1,thr:1,label:"Generic V6",blurb:"Generic educational V6 (approximate geometry; not yet converted to the Honda J35A6). Two banks of three cylinders, 60° here. Gasoline, port injection, coil-on-plug, variable cam timing."},
+ diesel:{label:"Diesel",v:0,n:4,fuel:"diesel",vvt:0,egr:1,turbo:1,knock:0,thr:0,dpf:1,blurb:"Inline-4 turbo common-rail diesel: compression ignition, glow plugs, EGR and particulate filter."},
+ modern:{label:"Modern turbo",v:0,n:4,fuel:"gdi",vvt:1,egr:0,turbo:1,knock:1,thr:1,blurb:"Modern inline-4 turbo gasoline with direct injection and variable cam timing. (My reading of “mod engine”.)"}
+};
+let root,parts=[],meshes=[],cur="v6",sel=null,hov=null;
+
+function part(o){o.g=refine(o.id,o.g);o.t=0;o.removed=false;o.g.userData.o=o;parts.push(o);(o.parent||root).add(o.g);return o}
+function build(k){
+ if(root){S.remove(root)}root=new THREE.Group();S.add(root);parts=[];sel=null;hov=null;
+ const E=ENG[k],n=E.n,nb=E.v?2:1,per=n/nb,L=per,xF=L/2+.35,sc=E.fuel!="port",intZ=E.v?0:1.05,intY=E.v?1.85:1.75;
+ const frames=[...Array(nb)].map((_,b)=>{const f=new THREE.Group();f.rotation.x=E.v?(b?-1:1)*Math.PI/6:0;root.add(f);return f});
+ const blk=part({id:"block",name:"Engine block & crankcase",fixed:1,codes:["P0300"],dist:0,dir:V(0,1,0),
+  desc:"The structural core: cylinders, crankcase and main bearings. No dedicated sensor, but loss of compression from worn rings or valves shows up as misfires. Fixed in this model.",g:grp(bx(L+.4,1.0,1.25,0x59616d,0,-.1,0))});
+ frames.forEach(f=>{const m=refine('block',grp(bx(L+.1,1.3,1.15,0x59616d,0,.75,0)));f.add(m)});
+ part({id:"pan",name:"Oil pan",codes:["P0520","P0521","P0522","P0523"],dir:V(0,-1,0),dist:2,
+  desc:"Sump holding the engine oil. Oil pressure and level problems are reported through the oil pressure sensor circuit, not the pan itself. Look here for leaks and metal debris.",g:grp(bx(L+.4,.7,1.15,0x3b4552,0,-.95,0))});
+ part({id:"pulley",name:"Crank pulley / damper",codes:["P0562"],dir:V(1,0,0),dist:2,
+  desc:"Drives the accessory belt and damps crankshaft vibration. No direct code; a slipping belt can show indirectly as low charging voltage.",g:grp(cy(.45,.22,0x2c3440,xF,0,0,"x"),cy(.3,.12,0x59616d,xF+.15,0,0,"x"))});
+ part({id:"crk",name:"Crankshaft position sensor",codes:["P0335","P0336"],dir:V(0,0,-1),dist:1.6,
+  desc:"Reads a toothed wheel on the crank to tell the ECU engine speed and piston position. Failure typically causes no-start or stalling; also check the wheel and wiring.",g:grp(bx(.18,.18,.3,0xe74c3c,xF-.45,-.2,-.75))});
+ part({id:"alt",name:"Alternator",codes:["P0562","P0563"],dir:V(0,0,1),dist:2,
+  desc:"Belt-driven generator that charges the battery and powers the vehicle. Voltage codes point to the charging circuit: test battery, belt, grounds and alternator output before replacing.",g:grp(cy(.38,.55,0x9aa5b1,xF-.1,.1,1.0,"x"))});
+ part({id:"ect",name:"Thermostat housing & coolant temp sensor",codes:["P0128","P0117","P0118"],dir:V(0,1,0),dist:1.8,
+  desc:"Regulates coolant flow and hosts the temperature sensor. P0128 usually means the engine is slow to warm (stuck-open thermostat) but confirm with live data.",g:grp(bx(.4,.32,.4,0xe8d44d,L/2+.3,.95,0))});
+ part({id:"oilp",name:"Oil pressure sensor",codes:["P0520","P0521","P0522","P0523"],dir:V(0,0,1),dist:1.5,
+  desc:"Sends oil pressure to the ECU/gauge. A code can mean a sensor or wiring fault or a real pressure problem; verify with a mechanical gauge.",g:grp(cy(.08,.26,0xd4a017,-L*.2,-.1,.7,"z"))});
+ // intake side
+ const xT=-L/2-.4,xM=-L/2-1.15;
+ part({id:"int",name:"Intake manifold / plenum",codes:E.fuel=="diesel"?["P0299"]:E.v?["P0171","P0174"]:["P0171"],dir:V(0,1,E.v?0:.5),dist:2.8,
+  desc:"Distributes intake air to the cylinders. Vacuum or boost leaks and cracked gaskets cause lean codes (gas) or underboost (diesel). Smoke-test before replacing sensors.",
+  g:grp(E.v?bx(L*.9,.45,.9,0x4a90d9,0,intY,0):bx(L*.9,.5,.55,0x4a90d9,0,intY,intZ))});
+ part({id:"map",name:E.fuel=="diesel"?"Boost pressure sensor":"MAP / boost sensor",codes:E.turbo?["P0236","P0106"]:["P0106","P0107","P0108"],dir:V(0,1,0),dist:1.4,
+  desc:"Measures manifold pressure so the ECU can calculate load and airflow. Compare with barometric pressure at key-on and check hoses for leaks.",g:grp(bx(.2,.25,.2,0x2ecc71,-L*.25,intY+.4,intZ))});
+ part({id:"maf",name:"Mass air flow sensor",codes:["P0101","P0102","P0103"],dir:V(-1,.5,0),dist:1.8,
+  desc:"Measures air entering the engine. A dirty or skewed MAF causes wrong fuel trims. Check for intake leaks after the sensor before condemning it.",
+  g:grp(cy(.17,.6,0x2c3440,xM,intY,intZ,"x"),bx(.2,.22,.2,0xe67e22,xM,intY+.25,intZ))});
+ if(E.thr)part({id:"thr",name:"Throttle body",codes:["P0121","P0122","P0123","P2135"],dir:V(-1,0,0),dist:1.6,
+  desc:"Electronically controlled valve that meters air at idle and under load. Carbon build-up or a failing position sensor causes rough idle and reduced-power mode.",g:grp(cy(.24,.5,0x9aa5b1,xT,intY,intZ,"x"))});
+ if(E.egr)part({id:"egr",name:"EGR valve",codes:["P0401","P0402"],dir:V(0,1,0),dist:1.6,
+  desc:"Recirculates exhaust into the intake to cut combustion temperature and NOx. Sticking valves or clogged passages cause flow codes and rough running.",g:grp(bx(.38,.3,.38,0xcc5522,L*.3,intY+.4,intZ))});
+ if(E.turbo)part({id:"turbo",name:"Turbocharger",codes:["P0299","P0234","P0236"],dir:V(0,.3,-1),dist:2.4,
+  desc:"Exhaust-driven compressor that raises intake pressure. Underboost or overboost codes point to leaks, a sticking wastegate/vane actuator, or turbo wear; check air path first.",
+  g:grp(cy(.34,.45,0x8e5a3c,L*.25,1.15,-1.6,"x"),cy(.28,.35,0x9aa5b1,L*.25+.42,1.15,-1.6,"x"),cy(.09,.9,0x7a4a2e,L*.25,1.3,-1.1,"z"))});
+ if(E.dpf)part({id:"dpf",name:"Diesel particulate filter",codes:["P2002"],dir:V(0,0,-1),dist:2.2,
+  desc:"Traps soot and periodically burns it off (regeneration). Efficiency codes can come from a failed filter, but also from upstream faults; check differential pressure and regen history.",g:grp(cy(.32,1.5,0x6b6f75,0,.9,-2.3,"x"))});
+ if(E.fuel=="gdi")part({id:"hpp",name:"High-pressure fuel pump",codes:["P0087"],dir:V(0,1,.5),dist:1.8,
+  desc:"Camshaft-driven pump that feeds the direct-injection rail at very high pressure. Low-pressure codes can also be low-pressure supply, filter, or regulator problems.",g:grp(cy(.18,.45,0xc9a24a,L*.35,1.95,.85))});
+ // banks
+ frames.forEach((f,b)=>{
+  const iz=E.v?(b?1:-1):1,es=-iz,add=o=>{o.parent=f;return part(o)},bn=b+1;
+  add({id:"head"+b,name:`Cylinder head${nb>1?" – bank "+bn:""}`,codes:["P0300","P0016"],dir:V(0,1,0),dist:3.4,
+   desc:"Holds valves, cams and combustion chambers. Head gasket or valve problems cause misfires, coolant/oil loss, and correlation codes. Needs compression/leak-down tests, not guesswork.",g:grp(bx(L+.1,.5,1.15,0x8a93a0,0,1.6,0))});
+  add({id:"cov"+b,name:`Valve cover${nb>1?" – bank "+bn:""}`,codes:E.fuel=="diesel"?[]:["P0171"],dir:V(0,1,0),dist:2.3,
+   desc:"Seals the top of the head and often carries the PCV (crankcase ventilation) path. Remove it to see plugs, injectors or glow plugs underneath. A PCV leak can cause lean codes.",g:grp(bx(L-.1,.28,.95,0x2f6fb3,0,2,0))});
+  add({id:"cam"+b,name:`Camshaft position sensor${nb>1?" – bank "+bn:""}`,codes:b?["P0345"]:["P0340","P0341"],dir:V(1,0,0),dist:1.4,
+   desc:"Tells the ECU cam position for injection and ignition timing. Intermittent signals can stall the engine; check wiring and cam/crank correlation.",g:grp(bx(.18,.18,.25,0x9b59b6,L/2+.15,1.75,0))});
+  add({id:"exh"+b,name:`Exhaust manifold${nb>1?" – bank "+bn:""}`,codes:E.fuel=="diesel"?[]:[b?"P0430":"P0420"],dir:V(0,.2,es),dist:2,
+   desc:"Collects exhaust from the cylinders. Cracks leak exhaust and upset sensors; catalyst-efficiency codes are related, but misfires or fuel faults must be ruled out first.",g:grp(bx(L*.95,.3,.3,0x7a4a2e,0,1.45,es*.75))});
+  if(E.knock)add({id:"knk"+b,name:`Knock sensor${nb>1?" – bank "+bn:""}`,codes:b?["P0330"]:["P0325","P0327"],dir:V(0,0,es),dist:1.4,
+   desc:"Listens for detonation through the block so the ECU can retard timing. Failure can reduce power; check torque, connector and wiring.",g:grp(cy(.08,.2,0xd4a017,0,.55,es*.65,"z"))});
+  if(E.vvt)add({id:"vvt"+b,name:`VVT solenoid${nb>1?" – bank "+bn:""}`,codes:b?["P0020","P0021"]:["P0010","P0011"],dir:V(-1,0,0),dist:1.5,
+   desc:"Oil-controlled actuator that shifts cam timing. Timing codes can be caused by dirty or low oil, a stuck solenoid, or a worn phaser, so check oil first.",g:grp(cy(.12,.3,0x2ecc71,-L/2-.2,1.75,0,"x"))});
+  if(E.fuel=="port")add({id:"rail"+b,name:`Fuel rail${nb>1?" – bank "+bn:""}`,codes:["P0171"],dir:V(0,1,iz*.4),dist:1.6,
+   desc:"Feeds fuel to the port injectors. Pressure faults appear as lean codes or hard starts; test pressure and volume before replacing parts.",g:grp(cy(.045,L,0xb08d57,0,1.98,iz*.7,"x"))});
+  if(E.fuel=="gdi")add({id:"rail"+b,name:"High-pressure fuel rail",codes:["P0087","P0190","P0191"],dir:V(0,1,.4),dist:1.6,
+   desc:"Holds fuel at injection pressure for direct injection, with a pressure sensor. Check low-pressure supply first when pressure is low.",g:grp(cy(.05,L,0xb08d57,0,2.1,.7,"x"))});
+  if(E.fuel=="diesel")add({id:"rail"+b,name:"Common rail",codes:["P0087","P0190","P0191"],dir:V(0,1,.4),dist:1.6,
+   desc:"Stores very high-pressure diesel for all injectors. Rail pressure codes can come from the pump, regulator, leaking injectors or a supply restriction.",g:grp(cy(.07,L,0x777e88,0,2.1,.7,"x"))});
+  for(let j=0;j<per;j++){const num=b*per+j+1,x=(j-(per-1)/2),nm=`Cyl ${num}`;
+   const cd=(base,id,name,desc,g,dir,dist,codes)=>add({id:id+num,name:`${name} – ${nm}`,codes,desc,dir,dist,g});
+   if(E.fuel!="diesel")cd(0,"coil","Ignition coil","Coil-on-plug unit that makes the spark. Misfire plus a coil circuit code points here, but swap coils between cylinders to see if the misfire follows. Numbering varies by manufacturer.",
+     grp(cy(.1,.55,0x222831,x,2.45,0),cy(.13,.12,0xc0392b,x,2.15,0)),V(0,1,0),1.7,[pc(350,num),pc(300,num)]);
+   if(E.fuel!="diesel")cd(0,"plug","Spark plug","Ignites the air-fuel mix. Worn or fouled plugs cause misfires and poor economy; inspect the electrode, gap and deposits. Hidden under the valve cover.",
+     grp(cy(.05,.36,0xd8dde3,x,1.93,0)),V(0,1,0),1.2,[pc(300,num)]);
+   if(E.fuel=="port")cd(0,"inj","Fuel injector","Sprays fuel into the intake port. Circuit codes mean electrical faults; clogged or leaking injectors need a balance or flow test.",
+     grp(cy(.05,.36,0xe0b020,x,1.75,iz*.62)),V(0,1,iz*.6),1.2,[pc(200,num),pc(300,num)]);
+   if(sc)cd(0,"inj",E.fuel=="diesel"?"Common-rail injector":"Direct injector","Injects fuel directly into the cylinder at very high pressure, under the valve cover. Circuit codes mean electrical faults; mechanical faults need balance-rate or return-flow tests.",
+     grp(cy(.07,.5,0xe0b020,x,1.95,0)),V(0,1,0),1.2,[pc(200,num),pc(300,num)]);
+   if(E.fuel=="diesel")cd(0,"glow","Glow plug","Heats the combustion chamber for cold starts. Check resistance and the control module; one failed plug usually causes a cold-start rough run, not a no-start.",
+     grp(cy(.04,.4,0xff7a1a,x,1.9,.3)),V(0,1,0),1.2,[pc(670,num),"P0670"]);
+  }
+ });
+ blk.dir=V(0,1,0);
+ root.traverse(m=>{});meshes=[];root.traverse(m=>{if(m.isMesh){m.material=m.material.clone();meshes.push(m);let p=m.parent;while(p&&!p.userData.o)p=p.parent;m.userData.part=p?p.userData.o:blk}});
+ buildList();makeLabels();show(null);$("#info").dataset.k=k;
+}
+function buildList(){const l=$("#list");l.innerHTML="";parts.forEach(p=>{const d=document.createElement("div");d.textContent=p.name;p.row=d;d.onclick=()=>pick(p);l.appendChild(d)})}
+function paint(){meshes.forEach(m=>{const p=m.userData.part;m.material.emissive.setHex(fault.has(p)?0x8a0000:p==sel?0x7a4300:p==hov?0x2a1c00:0)});parts.forEach(p=>{p.row.className=(p==sel?"sel ":"")+(p.removed?"rm":"")})}
+function show(p){inspect(p);const i=$("#info");if(!p){i.innerHTML=`<b>${ENG[cur].label}</b><p class="mut">${ENG[cur].blurb}</p><p class="mut">Honda J35A6: shapes, dimensions, equipment, bank/cylinder numbering and mounting locations approximate and unverified against the service manual.</p>`;return}
+ i.innerHTML=`<h3 style="margin:0">${p.name}</h3><p>${p.desc}</p><div>${p.codes.length?[...new Set(p.codes)].map(c=>`<span class="chip"><b>${c}</b> ${title(c)}</span>`).join(""):'<span class="mut">No direct DTC</span>'}</div>${fixHtml(p)}
+ ${p.fixed?'<p class="mut">Fixed in this model.</p>':`<button id="rm" class="on">${p.removed?"Restore part":"Remove part"}</button>`}`;
+ const b=$("#rm");if(b)b.onclick=()=>{p.removed=!p.removed;if(p.removed){sel=null;show(null)}else show(p);paint()}}
+function pick(p){sel=p;show(p);if(chal&&!p.fixed){const ok=p==chal.t,pl=p.codes.includes(chal.cd);$("#msg").innerHTML=`<p><b>${ok?"Correct: this is the faulted part.":pl?"Plausible: it shares "+chal.cd+", but it is not the faulted part here. Run its confirming test, then try another.":"Not related to "+chal.cd+"."}</b></p>`;if(ok){fault=new Set([p]);chal=null}}paint()}
+
+const FIX={coil:["Read freeze frame: note rpm, load, temp when the misfire set.","Swap this coil with a neighbour; clear nothing, re-test under the same conditions.","If the misfire follows the coil, test its supply voltage, ground and driver signal, then replace the coil.","Inspect the plug: a worn plug can kill a coil."],
+plug:["Remove the coil, then the plug (engine cold, clean the well first).","Check gap, electrode wear, oil, fuel or coolant fouling; the deposits point to the real cause.","Replace as a set to spec; torque correctly.","Re-test misfire counters (Mode 06/live data)."],
+inj:["Check injector circuit: connector, supply voltage and pulse with a noid light or scope.","Measure resistance against spec (injector off the circuit).","Run a balance/flow test before replacing; check fuel pressure first.","Verify fuel trims and misfire counts after repair."],
+glow:["Measure glow plug resistance and current draw.","Check the glow plug relay/module and supply voltage.","Replace failed plugs; remove carefully (seized plugs snap).","Confirm cold-start and clear the code only after repair."],
+maf:["Compare MAF g/s at idle and 2500 rpm with spec/known-good.","Inspect the intake for leaks after the sensor and a dirty air filter.","Clean only with MAF-safe cleaner; check 5 V reference, ground and signal.","Replace only if readings stay implausible after leaks are ruled out."],
+thr:["Look for carbon build-up; clean with throttle-body cleaner (key off).","Scan live throttle angle vs pedal: both should track smoothly.","Check reference, ground and signal wires.","Perform the throttle relearn after cleaning or replacement."],
+egr:["Check for a stuck valve or clogged passages (carbon).","Use a scan tool to command the valve (qualified operator, engine off or per procedure) and watch MAP change.","Clean passages or replace the valve; check the vacuum/electric actuator.","Verify with live EGR data and an EGR monitor drive cycle."],
+turbo:["Inspect the whole charge-air path for leaks, loose clamps and split hoses first.","Check the wastegate/vane actuator moves freely and the boost sensor reads plausibly.","Check oil supply, shaft play and wheel damage.","Only then replace the turbo; fix the cause of oil/debris first."],
+dpf:["Review soot load, differential pressure and regeneration history.","Fix upstream problems: injectors, EGR, misfires, short trips.","Run a forced regeneration with a scan tool (qualified operator, safe area).","Clean or replace the filter only if pressure stays high."],
+map:["Compare key-on MAP with barometric pressure.","Check the hose/port for cracks or blockage.","Check reference, ground, signal.","Replace if the reading does not track real vacuum/boost."],
+cam:["Check connector, wiring and air gap.","Scope the signal and compare to the crank signal.","Check the reluctor/tone wheel for damage.","Check cam timing before replacing the sensor."],
+crk:["Check connector, wiring, and sensor gap/mounting.","Measure sensor resistance or scope the signal while cranking.","Inspect the tone wheel for missing teeth or debris.","Replace the sensor only if the signal is dropped or absent."],
+alt:["Measure battery voltage: key-off, then idle (about 13.5–14.8 V is typical).","Check belt condition and tension, and the cable ends and grounds.","Voltage-drop test the charge cable and ground.","Load-test the alternator before replacing."],
+ect:["Compare scanned coolant temp with an infrared reading when cold.","Check thermostat opening temperature and coolant level.","Check sensor wiring and reference voltage.","Replace the thermostat (stuck open) or sensor as proven by test."],
+oilp:["Verify real oil pressure with a mechanical gauge first.","Check oil level and grade.","If pressure is good, check sensor wiring and the sensor.","Low real pressure means stop and investigate bearings/pump."],
+knk:["Check torque and connector; the mounting torque affects the signal.","Inspect wiring for oil-soaked insulation or chafing.","Check for a real knock (carbon, fuel quality, timing).","Replace the sensor only after those checks."],
+vvt:["Check oil level and condition first.","Check the solenoid resistance and the filter screen.","Command the solenoid and watch cam angle change.","Inspect the phaser or timing chain stretch if the response is slow."],
+rail:["Check the fuel pressure against spec at key-on and under load.","Check the supply side: tank pump, filter, regulator.","Test the pressure sensor against a gauge.","Inspect for leaks before replacing rail components."],
+int:["Smoke-test the intake for leaks.","Inspect gaskets, vacuum hoses and PCV.","Check fuel trims at idle vs 2500 rpm: a leak shrinks with rpm.","Replace gaskets or the manifold once the leak is located."],
+head:["Do a cylinder compression and leak-down test.","Check for coolant in the oil, oil in the coolant and combustion gases in the coolant.","Inspect the head for cracks and warpage before reassembly.","Follow the service manual torque sequence."],
+cov:["Inspect for oil leaks and gasket condition.","Check the PCV valve and hoses.","Replace the gasket; torque in sequence.","Re-check for leaks and lean codes."],
+exh:["Check for exhaust leaks (soot trails, ticking when cold).","Inspect studs and gaskets for cracks.","Rule out misfire and fuel faults before blaming the catalyst.","Repair leaks upstream of the O2 sensors first."],
+pan:["Check the oil level and look for leaks and metal debris.","Verify oil pressure with a gauge if codes are set.","Replace the gasket or pan as needed.","Refill with the correct oil and check for leaks."],
+hpp:["Check low-pressure supply pressure and filter first.","Compare actual vs commanded rail pressure on a scan tool.","Inspect the pump drive (cam lobe wear).","Replace the pump only after the supply side is confirmed good."],
+pulley:["Check belt condition and alignment.","Inspect the damper rubber for separation.","Replace if wobbling or cracked.","Re-check charging voltage."],
+block:["Perform compression and leak-down tests.","Check oil consumption and coolant loss.","Inspect with a borescope if needed.","Mechanical repair needs the service manual."]};
+const fixHtml=p=>{const f=FIX[p.id.replace(/\d+$/,"")];return f?`<h4 style="margin:10px 0 4px">Test, then fix</h4><ol style="margin:0;padding-left:18px">${f.map(x=>`<li>${x}</li>`).join("")}</ol><small class="mut">Generic procedure. Use vehicle-specific service information for specs.</small>`:""};
+let fault=new Set(),scan=null,chal=null;
+const OKC=/^[PCBU][0-3][0-9A-F]{3}$/;
+function highlightCode(cd){fault=new Set(relatedParts(cd,parts));const f=[...fault][0];fault.forEach(p=>p.removed=false);if(f){pick(f);$("#ex").value=Math.max(45,Number($("#ex").value));$("#label-toggle").checked=true}
+ document.querySelectorAll('#dtcs button').forEach(b=>b.classList.toggle('active',b.dataset.c===cd));
+ $("#engine-dtc").hidden=false;$("#engine-dtc").textContent=`${scan?.source==='VEHICLE · WI-FI'?'VEHICLE':'SIMULATED'} · ${cd} · ${title(cd)||'Unlisted code'} · ${fault.size?fault.size+' related components':'No mapped component'}`;
+ $("#related-parts").replaceChildren();for(const p of fault){const button=document.createElement('button');button.textContent=p.name;button.onclick=()=>pick(p);$("#related-parts").append(button)}
+ $("#msg").textContent=fault.size?`${fault.size} related part(s) for ${cd}. A code identifies a circuit or system, not a proven failed part. Cylinder numbering is generic, not vehicle-specific.`:`${cd}: no matching part in this generic engine model. Check vehicle-specific service information.`;paint()}
+function setScan(codes,source,ch,records=[]){scan={codes,source};chal=ch||null;fault.clear();$("#engine-dtc").hidden=true;$("#related-parts").replaceChildren();$("#src").textContent=source;
+ $("#scan-label").textContent=source==="VEHICLE · WI-FI"?"VEHICLE DTCs · GENERIC ENGINE MODEL":"SIMULATED — NOT FROM A VEHICLE";
+ $("#dtcs").innerHTML=codes.map(c=>`<button type="button" class="chip" data-c="${c}"><b>${c}</b> ${title(c)||"Unlisted code — see service information"} ${records.filter(r=>r.code===c).map(r=>r.status).join(" / ")}</button>`).join("")||"No stored or pending codes returned.";
+ document.querySelectorAll("#dtcs .chip").forEach(c=>c.onclick=()=>{if(chal){$("#msg").textContent="Challenge: click the part you think is at fault.";return}highlightCode(c.dataset.c)});paint()}
+function clearScan(){scan=null;chal=null;fault.clear();$("#engine-dtc").hidden=true;$("#related-parts").replaceChildren();$("#src").textContent="NO SOURCE";$("#dtcs").textContent="No codes displayed. Clear scan only clears this screen; vehicle codes are unchanged.";$("#scan-label").textContent="NO SCAN DISPLAYED";$("#msg").innerHTML="";paint()}
+$("#clr").onclick=clearScan;
+$("#sim").onclick=()=>{const cand=parts.filter(p=>!p.fixed&&p.codes.length);const t=cand[Math.floor(Math.random()*cand.length)];setScan([...new Set(t.codes.slice(0,2))],"SIMULATED — NOT FROM A VEHICLE");$("#msg").innerHTML='<p class="mut">Simulated session (not a real vehicle). Click a code to see which parts it can implicate.</p>'};
+$("#chal").onclick=()=>{const cand=parts.filter(p=>!p.fixed&&p.codes.length);const t=cand[Math.floor(Math.random()*cand.length)];const cd=t.codes[Math.floor(Math.random()*t.codes.length)];setScan([cd],"SIMULATED — NOT FROM A VEHICLE",{t,cd});$("#msg").innerHTML=`<p><b>Challenge:</b> ${cd} is stored. Click the part you would test first. Hint: ${title(cd)}.</p>`};
+const wifi=new ElmWifi();let lastSync=null;
+const dashboard=createObdDashboard($('#obd-dashboard'),wifi);
+wifi.onChange=client=>{
+ dashboard.render();
+ const active=client.status!=="disconnected",connected=client.status==="connected";
+ $("#wifi-connect").disabled=active;$("#bridge").disabled=active;$("#wifi-disconnect").disabled=!active;$("#wifi-sync").disabled=!connected||client.syncing;
+ $("#sim").disabled=active;$("#chal").disabled=active;
+ $("#wifi-status").textContent=client.status==="connecting"?"Connecting to adapter…":connected?(client.syncing?"Reading stored and pending codes…":`Connected · ${client.syncedAt?"Last sync "+client.syncedAt.toLocaleTimeString():"No scan yet"}`):"Disconnected";
+ $("#wifi-error").textContent=client.error;
+ $("#readings").hidden=!connected;const t=client.telemetry;
+ $("#readings").innerHTML=connected?`<span>${t.rpm??"—"} rpm</span><span>Coolant ${t.coolant??"—"} °C</span><span>Adapter ${t.voltage??"—"} V</span><span>MIL ${t.mil==null?"—":t.mil?"On":"Off"}</span>`:"";
+ if(client.syncedAt&&client.syncedAt!==lastSync){lastSync=client.syncedAt;const selected=document.querySelector('#dtcs button.active')?.dataset.c;const codes=[...new Set(client.codes.map(r=>r.code))];setScan(codes,"VEHICLE · WI-FI",null,client.codes);if(codes.length)highlightCode(codes.includes(selected)?selected:codes[0]);else $("#msg").textContent="Vehicle returned no stored or pending codes. This does not confirm readiness or a fault-free vehicle."}
+ if(!active){lastSync=null;if(scan?.source==="VEHICLE · WI-FI")clearScan()}
+};
+$("#wifi-connect").onclick=async()=>{clearScan();try{await wifi.connect($("#bridge").value.trim())}catch(error){$("#wifi-error").textContent=error.message}};
+$("#wifi-disconnect").onclick=()=>wifi.disconnect();
+$("#wifi-sync").onclick=async()=>{try{await wifi.sync()}catch(error){$("#wifi-error").textContent=error.message}};
+window.addEventListener("pagehide",()=>wifi.disconnect());
+
+/* tabs */
+["v6"].forEach(k=>{const b=document.createElement("button");b.textContent=ENG[k].label;b.id="t"+k;b.onclick=()=>{cur=k;document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");build(k);clearScan();rot.az=.6};$("#tabs").appendChild(b)});
+$("#reset").onclick=()=>{parts.forEach(p=>p.removed=false);$("#ex").value=0;sel=null;show(null);paint()};
+/* orbit: full 360° azimuth, elevation limited to avoid flipping */
+const rot={az:.6,el:.35,r:9.5},tgt=new THREE.Vector3(0,.7,0),pts=new Map(),ray=new THREE.Raycaster(),nd=new THREE.Vector2();let moved=0,pan=0;const CAM0={az:.6,el:.35,r:9.5};
+$("#rcam").onclick=()=>{Object.assign(rot,CAM0);tgt.set(0,.7,0)};
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+function doPan(dx,dy){const f=rot.r*.0016,right=new THREE.Vector3().setFromMatrixColumn(C.matrix,0),upv=new THREE.Vector3().setFromMatrixColumn(C.matrix,1);tgt.addScaledVector(right,-dx*f).addScaledVector(upv,dy*f);tgt.clampLength(0,6)}
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);moved=0;pan=e.button==2||e.shiftKey;$("#auto").checked=false});
+cv.addEventListener("pointermove",e=>{const o=pts.get(e.pointerId);
+ if(o){const n=pts.size;if(n==1&&pan){const dx=e.clientX-o[0],dy=e.clientY-o[1];doPan(dx,dy);moved+=Math.abs(dx)+Math.abs(dy)}else if(n==1){const dx=e.clientX-o[0],dy=e.clientY-o[1];rot.az-=dx*.008;rot.el=Math.max(-1.45,Math.min(1.45,rot.el+dy*.008));moved+=Math.abs(dx)+Math.abs(dy)}
+  else if(n==2){const q=[...pts.entries()].find(([id])=>id!=e.pointerId)[1],d0=Math.hypot(o[0]-q[0],o[1]-q[1]),d1=Math.hypot(e.clientX-q[0],e.clientY-q[1]);rot.r=Math.max(3,Math.min(20,rot.r*d0/d1));doPan((e.clientX-o[0])/2,(e.clientY-o[1])/2);moved+=9}
+  pts.set(e.pointerId,[e.clientX,e.clientY])}
+ else{const p=hit(e);if(p!=hov){hov=p;paint();cv.style.cursor=p?"pointer":"grab"}}});
+const up=e=>{if(pts.has(e.pointerId)&&moved<6&&pts.size==1){const p=hit(e);p?pick(p):(sel=null,show(null),paint())}pts.delete(e.pointerId)};
+cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",e=>pts.delete(e.pointerId));
+cv.addEventListener("wheel",e=>{e.preventDefault();rot.r=Math.max(3,Math.min(20,rot.r*(1+e.deltaY*.001)))},{passive:false});
+function hit(e){const r=cv.getBoundingClientRect();nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(nd,C);
+ const h=ray.intersectObjects(meshes.filter(m=>{let o=m;while(o){if(!o.visible)return false;o=o.parent}return true}),false)[0];return h?h.object.userData.part:null}
+new ResizeObserver(()=>{const s=$("#stage"),w=s.clientWidth,h=s.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix();if(sel)inspect(sel)}).observe($("#stage"));
+const clock=new THREE.Clock();let exS=0,lastFrame=0,lastLabels=0;
+(function loop(now=0){requestAnimationFrame(loop);if(now-lastFrame<33)return;lastFrame=now;const dt=Math.min(clock.getDelta(),.05),ex=$("#ex").value/100;
+ if($("#auto").checked)rot.az+=dt*.25;
+ exS+=(ex-exS)*Math.min(1,dt*6);const fit=(1+exS*.75)*(C.aspect<1?Math.min(1.9,1/C.aspect*.85+.15):1),rr=rot.r*fit,ty=tgt.y+exS*.6;
+ C.position.set(tgt.x+rr*Math.sin(rot.az)*Math.cos(rot.el),ty+rr*Math.sin(rot.el),tgt.z+rr*Math.cos(rot.az)*Math.cos(rot.el));C.lookAt(tgt.x,ty,tgt.z);
+ parts.forEach(p=>{p.t+=((p.removed?1:0)-p.t)*Math.min(1,dt*8);if(p.fixed)return;const k=p.t*(p.dist+3)+ex*p.dist*.8;p.g.position.copy(p.dir).multiplyScalar(k);p.g.visible=p.t<.97});
+ root?.updateMatrixWorld(true);C.updateMatrixWorld(true);if(now-lastLabels>100){updateLabels();lastLabels=now}R.render(S,C);if(sel&&!$('#inspection').hidden)detailR.render(detailS,detailC)})();
+$("#t"+cur).click();window.__ok=1;$("#load").style.display="none";document.getElementById("stage").dataset.sceneReady="1";
+</script></body></html>
