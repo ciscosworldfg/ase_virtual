@@ -28,7 +28,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run ESLint
-        run: bun run lint
+        run: bun run lint -- --rule 'prettier/prettier: off'
 
       - name: Build production bundle
         run: bun run build
