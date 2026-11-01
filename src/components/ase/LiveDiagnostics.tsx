@@ -9,6 +9,8 @@ import { vehicleById } from "@/lib/sim/vehicles";
  * ScanTool interface and suppresses every simulated value until a verified ELM327
  * bridge supplies actual vehicle readings.
  */
+const noop = () => undefined;
+
 export function LiveDiagnostics() {
   const scenario = SCENARIOS[0];
   const vehicle = scenario ? vehicleById(scenario.vehicleId) : undefined;
@@ -24,7 +26,7 @@ export function LiveDiagnostics() {
       data={data}
       codes={scenario.codes}
       freezeFrame={scenario.freezeFrame}
-      onUse={() => undefined}
+      onUse={noop}
     />
   );
 }
