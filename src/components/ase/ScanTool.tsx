@@ -37,7 +37,12 @@ export function ScanTool({
         <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
           OBD-II Scan Tool
         </span>
-        <span className="label-tech text-ok">Link established</span>
+        <span className="label-tech text-caution">SIMULATED · NO VEHICLE CONNECTION</span>
+      </div>
+
+      <div className="border-b border-caution/40 bg-caution/10 px-4 py-2 text-xs text-caution">
+        Training data only. This scan tool is connected to the virtual vehicle simulator,
+        not a physical OBD-II adapter. Real ELM327 support is being developed separately.
       </div>
 
       <div className="flex border-b border-border">
