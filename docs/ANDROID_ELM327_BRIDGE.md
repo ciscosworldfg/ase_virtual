@@ -22,6 +22,17 @@ The native bridge sends one JSON object per message using these discriminators:
 Example RPM response: `{"type":"response","id":"req-123","cmd":"010C","raw":"41 0C 1A F8","success":true}`.
 The payload decodes to 1,726 RPM: (0x1AF8 / 4). The web parser lives at `src/lib/obd/bridgeProtocol.ts`; malformed or unknown messages are rejected.
 
+## Web-to-native request contract
+
+The web UI sends these requests to the Android host:
+
+- `connect`: private IPv4 adapter host and TCP port (the supplied example is `192.168.0.10:35000`).
+- `command`: request ID and a read-only OBD command.
+- `disconnect`: close the adapter session.
+- `status`: return the current connection status.
+
+The TypeScript request validator is `parseElmBridgeRequest` in `src/lib/obd/bridgeProtocol.ts`. It rejects public IP destinations, malformed ports, unknown message types, arbitrary ELM AT commands, and commands outside the read-only allowlist. The initial allowlist includes supported standard Mode 01 PIDs and generic DTC read services `03` and `07`; service `04` is explicitly excluded. Android must independently enforce the same policy—web validation is not a security boundary.
+
 ## Initial protocol
 1. Open TCP socket with bounded connect/read timeouts.
 2. Initialize with ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0.
@@ -38,7 +49,7 @@ The payload decodes to 1,726 RPM: (0x1AF8 / 4). The web parser lives at `src/lib
 
 ## Current implementation status
 - [x] Remove the false Link established claim from the simulator scan tool.
-- [ ] Implement Android companion project and native Wi-Fi socket client.\n- [x] Define and validate the native-to-web JSON message contract; decode the sample RPM response.
+- [ ] Implement Android companion project and native Wi-Fi socket client.\n- [x] Define and validate the native-to-web JSON message contract; decode the sample RPM response.\n- [x] Define and validate the web-to-native connect, command, disconnect, and status requests.
 - [ ] Add a restricted JavaScript bridge and real-data UI mode.
 - [ ] Test against the user's specific ELM327 adapter and vehicle.
 - [ ] Verify supported PIDs, DTC parsing, reconnect behavior, and browser/app lifecycle.
