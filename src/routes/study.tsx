@@ -5,17 +5,18 @@ import { PracticeExam } from "@/components/study/PracticeExam";
 import { FieldProtocols } from "@/components/study/FieldProtocols";
 import { RoadmapTracker } from "@/components/study/RoadmapTracker";
 import { DiagnosticWorksheet } from "@/components/study/DiagnosticWorksheet";
+import { CurriculumPanel } from "@/components/study/CurriculumPanel";
 
 export const Route = createFileRoute("/study")({
   head: () => ({
     meta: [
-      { title: "Study Hub — exams, protocols & 16-week roadmap | ASE Virtual" },
+      { title: "Study Hub — exams, protocols & 16-week roadmap | AISE Virtual" },
       {
         name: "description",
         content:
           "ASE exam practice bank with instructor rationale, master diagnostic field protocols, the 16-week mastery roadmap and the digital 7-step diagnostic worksheet.",
       },
-      { property: "og:title", content: "Study Hub | ASE Virtual" },
+      { property: "og:title", content: "Study Hub | AISE Virtual" },
       {
         property: "og:description",
         content:
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/study")({
 });
 
 const TABS = [
+  { id: "curriculum", label: "Curriculum" },
   { id: "exam", label: "Practice Exam" },
   { id: "protocols", label: "Field Protocols" },
   { id: "roadmap", label: "16-Week Roadmap" },
@@ -70,6 +72,7 @@ function StudyPage() {
         </div>
 
         <div className="mt-8">
+          {tab === "curriculum" && <CurriculumPanel />}
           {tab === "exam" && <PracticeExam />}
           {tab === "protocols" && <FieldProtocols />}
           {tab === "roadmap" && <RoadmapTracker />}
