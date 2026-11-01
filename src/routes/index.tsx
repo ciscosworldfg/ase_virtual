@@ -182,7 +182,7 @@ function Landing() {
               Simulation, not a repair manual
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              AISE Virtual — AISE Virtual is independent ASE-aligned preparation and training software. It is not
+              AISE Virtual provides independent ASE-aligned preparation and training software. It is not
               affiliated with or endorsed by ASE, and it does not issue certification. Always follow
               manufacturer service information and safety procedures on a real vehicle.
             </p>

@@ -48,6 +48,7 @@ export function SiteNav() {
             Start Training
           </Link>
         </nav>
+        <a href="/engine-lab/index.html" className="ml-auto rounded-sm border border-primary/60 px-3 py-2 text-xs font-semibold text-primary sm:hidden">3D Engine Lab</a>
       </div>
     </header>
   );
