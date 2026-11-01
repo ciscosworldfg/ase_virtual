@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Gauge } from "lucide-react";
 
 const links = [
+  { to: "/workshop", label: "Workshop" },
   { to: "/scenarios", label: "Scenarios" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/study", label: "Study Hub" },
