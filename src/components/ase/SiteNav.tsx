@@ -44,6 +44,18 @@ export function SiteNav() {
           </Link>
         </nav>
       </div>
+      <nav aria-label="Mobile quick links" className="flex gap-1 overflow-x-auto border-t border-border px-3 py-2 sm:hidden">
+        {links.map((l) => (
+          <Link
+            key={l.to}
+            to={l.to}
+            className="shrink-0 rounded-sm border border-border px-3 py-2 text-xs font-semibold text-muted-foreground"
+            activeProps={{ className: "shrink-0 rounded-sm border border-primary bg-primary/15 px-3 py-2 text-xs font-semibold text-primary" }}
+          >
+            {l.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }
