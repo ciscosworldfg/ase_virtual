@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
 
 const flow = [
   { icon: ClipboardList, title: "Customer complaint", body: "Interview a virtual customer who describes symptoms — never the diagnosis." },
-  { icon: Gauge, title: "Virtual test drive", body: "Drive the simulated vehicle, watch the cluster, and observe the fault under load." },
+  { icon: Gauge, title: "Vehicle inspection", body: "Inspect the vehicle, document findings, and identify which systems need testing before diagnosis." },
   { icon: Activity, title: "Scan tool", body: "Practice reading simulated codes, freeze frame and live data. Real adapter readings remain separate." },
   { icon: Cable, title: "Measure it", body: "Place multimeter probes on virtual test points and interpret voltage drop." },
   { icon: Wrench, title: "Prove the cause", body: "Choose cause, confirmation test and repair — guessing scores lower." },
