@@ -77,33 +77,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AISE Virtual — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Diagnostic Training Lab" },
       {
         name: "description",
         content:
-          "An AI-powered virtual automotive diagnostic laboratory: test drive, scan, measure and prove the root cause.",
+          "AISE Virtual is an interactive automotive diagnostic training lab. Diagnose, test, learn and build technician-level skills through guided lessons and vehicle simulations.",
       },
       { name: "author", content: "AISE Virtual" },
       { property: "og:title", content: "AISE Virtual — Diagnose. Test. Learn. Master." },
       {
         property: "og:description",
         content:
-          "Virtual test drives, OBD-II live data and evidence-based diagnostic scoring for ASE-aligned training.",
+          "An interactive automotive learning and diagnostic lab with guided A1–A8 curriculum, 3D engine exploration and OBD-II training.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap",
-      },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
