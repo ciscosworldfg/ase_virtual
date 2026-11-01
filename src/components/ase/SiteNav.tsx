@@ -21,7 +21,7 @@ export function SiteNav() {
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
               AISE VIRTUAL
             </span>
-            <span className="label-tech block text-[0.6rem]">Plug and Learn · Diagnose · Repair · Master</span>
+            <span className="label-tech block text-[0.6rem]">Diagnose · Test · Learn · Master</span>
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
