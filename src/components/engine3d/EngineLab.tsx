@@ -13,7 +13,8 @@ import type { EngineSceneController, LabelPos, PartInfo } from "@/lib/engine3d/s
 function hasWebGL() {
   try {
     const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+    // Three.js r163+ requires WebGL 2; WebGL 1 alone is not sufficient.
+    return !!c.getContext("webgl2");
   } catch {
     return false;
   }
@@ -31,6 +32,9 @@ export function EngineLab() {
   const [showLabels, setShowLabels] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [virtualRpm, setVirtualRpm] = useState(850);
+  const [virtualRunning, setVirtualRunning] = useState(true);
+  const [faultCode, setFaultCode] = useState("P0302");
 
   useEffect(() => {
     if (!hasWebGL()) {
@@ -64,6 +68,8 @@ export function EngineLab() {
   useEffect(() => ctl.current?.setExplode(explode), [explode]);
   useEffect(() => ctl.current?.setAutoRotate(autoRotate), [autoRotate]);
   useEffect(() => ctl.current?.setShowLabels(showLabels), [showLabels]);
+  useEffect(() => ctl.current?.setTelemetry({ rpm: virtualRpm, running: virtualRunning }), [virtualRpm, virtualRunning, ready]);
+  useEffect(() => ctl.current?.setFaultCodes(faultCode ? [faultCode] : []), [faultCode, ready]);
 
   const chooseFamily = (id: string) => {
     setFamily(id);
@@ -151,6 +157,34 @@ export function EngineLab() {
               </>
             )}
           </div>
+
+          <section className="panel-instrument space-y-3 p-3" aria-label="Virtual engine operation controls">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="label-tech">Virtual engine operation</h2>
+                <p className="text-xs text-muted-foreground">Training simulation only — not live vehicle telemetry.</p>
+              </div>
+              <button type="button" aria-pressed={virtualRunning} onClick={() => setVirtualRunning((running) => !running)} className="rounded-sm border border-border px-3 py-1.5 text-sm hover:bg-accent">
+                {virtualRunning ? "Stop engine" : "Start engine"}
+              </button>
+            </div>
+            <label className="flex items-center gap-3 text-sm">
+              <span className="label-tech w-16 shrink-0">RPM</span>
+              <input type="range" min={0} max={6000} step={50} value={virtualRpm} onChange={(e) => setVirtualRpm(Number(e.target.value))} disabled={!virtualRunning} className="w-full accent-primary" />
+              <span className="readout w-20 text-right">{virtualRunning ? virtualRpm.toLocaleString() : 0} rpm</span>
+            </label>
+            <label className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="label-tech">Inject training fault</span>
+              <select value={faultCode} onChange={(e) => setFaultCode(e.target.value)} className="min-w-0 flex-1 rounded-sm border border-border bg-background px-2 py-1.5">
+                <option value="">No active fault</option>
+                <option value="P0302">P0302 — Cylinder 2 misfire</option>
+                <option value="P0101">P0101 — MAF range/performance</option>
+                <option value="P0118">P0118 — Coolant temperature circuit high</option>
+                <option value="P0335">P0335 — Crankshaft position sensor</option>
+                <option value="P0522">P0522 — Oil pressure sensor low</option>
+              </select>
+            </label>
+          </section>
 
           <div className="panel-instrument flex flex-wrap items-center gap-3 p-3">
             <label className="flex min-w-[200px] flex-1 items-center gap-2 text-sm">
