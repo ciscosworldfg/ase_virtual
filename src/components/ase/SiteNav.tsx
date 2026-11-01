@@ -7,6 +7,7 @@ const links = [
   { to: "/study", label: "Study Hub" },
   { to: "/diy", label: "DIY Garage" },
   { to: "/resources", label: "Resources" },
+  { to: "/engine-lab/index.html", label: "3D Engine Lab" },
 ] as const;
 
 export function SiteNav() {
@@ -19,9 +20,9 @@ export function SiteNav() {
           </span>
           <span className="leading-none">
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
-              LAT
+              AISE VIRTUAL
             </span>
-            <span className="label-tech block text-[0.6rem]">Learning Automotive Technology</span>
+            <span className="label-tech block text-[0.6rem]">Plug and Learn · Diagnose · Repair · Master</span>
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
