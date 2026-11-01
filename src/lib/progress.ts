@@ -53,7 +53,7 @@ export function scoreAttempt(input: {
   estimatedMinutes: number;
 }) {
   const accuracy = input.totalSteps ? input.firstTryCorrect / input.totalSteps : 0;
-  const expectedTools = ["interview", "testdrive", "inspect", "scan", "meter"];
+  const expectedTools = ["interview", "inspect", "scan", "meter"];
   const procedure =
     expectedTools.filter((t) => input.toolsUsed.includes(t)).length / expectedTools.length;
   const evidence = Math.max(0, accuracy * 0.6 + procedure * 0.4);
