@@ -9,7 +9,6 @@ import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
-import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
 import { EstimateBuilder } from "@/components/ase/EstimateBuilder";
 import { ServiceRoleplay } from "@/components/ase/ServiceRoleplay";
 import { SymptomAssessment } from "@/components/ase/SymptomAssessment";
@@ -259,7 +258,6 @@ function Session() {
           </div>
 
           <aside className="space-y-4">
-            <MasterTechPanel scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
             <SymptomAssessment scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
             <div className="panel-instrument p-4">
               <span className="label-tech">Evidence collected</span>
