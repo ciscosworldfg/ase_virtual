@@ -1,7 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
-  AudioLines,
   Cable,
   ClipboardList,
   Gauge,
@@ -152,14 +151,6 @@ function Landing() {
 
       <section className="mx-auto max-w-7xl px-4 py-16">
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="panel-instrument p-6">
-            <AudioLines className="h-5 w-5 text-primary" />
-            <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">Synthesized engine audio</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Sound responds to simulated RPM, throttle, load and injected failures. Audio is
-              generated in-browser and is not a recording of a real vehicle.
-            </p>
-          </div>
           <div className="panel-instrument p-6">
             <ShieldAlert className="h-5 w-5 text-caution" />
             <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide">Training, not a repair manual</h3>
