@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Gauge, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Gauge, Pause, Play, RotateCcw } from "lucide-react";
 import { Cluster } from "./Cluster";
-import { EngineAudio, cylinderCount } from "@/lib/sim/audio";
 import { computeLiveData, initialState, stepSim, type SimState } from "@/lib/sim/engine";
 import type { Scenario, Vehicle } from "@/lib/sim/types";
 
@@ -18,10 +17,6 @@ export function TestDrive({
   setState: (updater: (s: SimState) => SimState) => void;
   onUse: () => void;
 }) {
-  const [audioOn, setAudioOn] = useState(false);
-  const [perspective, setPerspective] = useState<"cabin" | "exterior">("cabin");
-  const [distance, setDistance] = useState(6);
-  const audio = useRef<EngineAudio | null>(null);
   const data = useMemo(
     () => computeLiveData(state, vehicle, scenario.failure),
     [state, vehicle, scenario.failure],
@@ -30,50 +25,6 @@ export function TestDrive({
   useEffect(() => {
     onUse();
   }, [onUse]);
-
-  useEffect(() => {
-    if (!audioOn) {
-      audio.current?.stop();
-      audio.current = null;
-      return;
-    }
-    const engine = new EngineAudio();
-    engine.start(cylinderCount(vehicle.layout));
-    audio.current = engine;
-    return () => {
-      engine.stop();
-      audio.current = null;
-    };
-  }, [audioOn, vehicle.layout]);
-
-  useEffect(() => {
-    audio.current?.update({
-      rpm: state.rpm,
-      throttle: state.throttle,
-      load: data.load,
-      speed: state.speed,
-      cylinders: cylinderCount(vehicle.layout),
-      running: state.running,
-      profileId: scenario.audioProfile.id,
-      gear: data.gear,
-      shifting: data.shifting,
-      slip: data.slip,
-      drivelineHz: data.drivelineHz,
-      perspective,
-      distance,
-    });
-  }, [
-    state,
-    data.load,
-    data.gear,
-    data.shifting,
-    data.slip,
-    data.drivelineHz,
-    scenario.audioProfile.id,
-    vehicle.layout,
-    perspective,
-    distance,
-  ]);
 
   useEffect(() => {
     if (!state.running) return;
@@ -93,30 +44,7 @@ export function TestDrive({
           <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
             Virtual test drive
           </span>
-          <div className="flex items-center gap-2">
-            <div className="flex overflow-hidden rounded-sm border border-border text-xs">
-              {(["cabin", "exterior"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPerspective(p)}
-                  className={`px-2.5 py-1 capitalize ${
-                    perspective === p
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setAudioOn((a) => !a)}
-              className="flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
-            >
-              {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-              {audioOn ? "Audio on" : "Audio off"}
-            </button>
-          </div>
+
         </div>
 
 
@@ -193,29 +121,7 @@ export function TestDrive({
                 </span>
               </div>
             </div>
-            {perspective === "exterior" && (
-              <div className="rounded-sm border border-border bg-panel px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="label-tech">Listening distance</span>
-                  <span className="readout text-xs text-primary">{distance} m</span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={30}
-                  value={distance}
-                  onChange={(e) => setDistance(Number(e.target.value))}
-                  className="mt-2 w-full accent-[var(--primary)]"
-                />
-              </div>
-            )}
           </div>
-
-          <p className="mt-4 rounded-sm border border-border bg-panel px-3 py-2 text-xs text-muted-foreground">
-            <Gauge className="mr-1.5 inline h-3.5 w-3.5 text-signal" />
-            Audio profile: <strong>{scenario.audioProfile.label}</strong> —{" "}
-            {scenario.audioProfile.description}
-          </p>
 
         </div>
       </div>
