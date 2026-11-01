@@ -8,7 +8,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const host = process.argv[2] || '192.168.0.10';
 const port = Number(process.argv[3] || 35000);
 const wsPort = Number(process.argv[4] || 35001);
-const origins = new Set((process.env.ELM_ALLOWED_ORIGINS || 'https://aisevirtualgarage.lovable.app,https://id-preview--c062f4a0-cad2-4f41-97f7-f305ad59c5eb.lovable.app,http://localhost:8080').split(','));
+const origins = new Set((process.env.ELM_ALLOWED_ORIGINS || 'https://francisco-garcia.vercel.app,https://aisevirtualgarage.lovable.app,https://id-preview--c062f4a0-cad2-4f41-97f7-f305ad59c5eb.lovable.app,http://localhost:8080').split(','));
 const allowed = /^(ATZ|ATE0|ATL0|ATH0|ATS1|ATSP0|03|07|0101|010C|0105|010D|0104|0111|010B|010F|0106|0107|ATRV)$/;
 const tls = process.env.ELM_TLS_CERT && process.env.ELM_TLS_KEY;
 const server = tls ? https.createServer({ cert: readFileSync(process.env.ELM_TLS_CERT), key: readFileSync(process.env.ELM_TLS_KEY) }) : null;
