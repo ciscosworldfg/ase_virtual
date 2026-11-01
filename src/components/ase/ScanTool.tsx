@@ -176,6 +176,7 @@ export function ScanTool({
               </div>
             )}
 
+{mode === "virtual" ? (
             <div className="rounded-sm border border-border bg-panel p-3">
               <span className="label-tech">Fuel trim graph (STFT / LTFT)</span>
               <div className="mt-2 h-32">
@@ -208,6 +209,9 @@ export function ScanTool({
                 </ResponsiveContainer>
               </div>
             </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Live graph will populate only from verified vehicle readings.</p>
+            )}
           </div>
         )}
       </div>
