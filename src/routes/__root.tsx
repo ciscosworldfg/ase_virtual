@@ -77,27 +77,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Industry Shop Experience" },
       {
         name: "description",
         content:
-          "An AI-powered virtual automotive diagnostic laboratory: test drive, scan, measure and prove the root cause.",
+          "Automotive Industry Shop Experience: virtual diagnostic training, evidence-based repair learning, and a separately gated read-only OBD-II live diagnostics workspace.",
       },
-      { name: "author", content: "Learning Automotive Technology (LAT)" },
-      { property: "og:title", content: "Learning Automotive Technology (LAT) — Diagnose. Test. Learn. Master." },
+      { name: "author", content: "AISE Virtual — Automotive Industry Shop Experience" },
+      { property: "og:title", content: "AISE Virtual — Plug and Learn. Diagnose. Repair. Master." },
       {
         property: "og:description",
         content:
-          "Virtual test drives, OBD-II live data and evidence-based diagnostic scoring for ASE-aligned training.",
+          "Virtual automotive training and a separate, read-only live vehicle diagnostics workspace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -107,7 +104,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
-
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -117,23 +113,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
+      <head><HeadContent /></head>
+      <body>{children}<Scripts /></body>
     </html>
   );
 }
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );
