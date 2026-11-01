@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "An AI-era virtual automotive laboratory: hear the vehicle, drive it, scan it, measure it, and prove the root cause before you touch a wrench.",
+          "AISE Virtual — Automotive Industry Shop Experience (AISE). Diagnose. Test. Learn. Master. Hear the vehicle, drive it, scan it, measure it, and prove the root cause before you touch a wrench.",
       },
       { property: "og:title", content: "AISE Virtual — Master the diagnosis before you touch the car" },
       {
@@ -49,7 +49,8 @@ function Landing() {
       <section className="hero-surface relative overflow-hidden border-b border-border">
         <div className="tech-grid pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-7xl px-4 py-20 lg:py-28">
-          <p className="label-tech text-primary">The AI-powered virtual automotive diagnostic laboratory</p>
+          <p className="label-tech text-primary">AUTOMOTIVE INDUSTRY SHOP EXPERIENCE (AISE)</p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">AISE Virtual · Diagnose. Test. Learn. Master.</p>
           <h1 className="mt-5 max-w-4xl font-display text-4xl font-bold uppercase leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
             Master the diagnosis before you touch the car.
           </h1>
@@ -191,8 +192,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        AISE Virtual · Educational simulation software · ASE-aligned preparation, not official ASE
-        certification
+        AISE Virtual — Automotive Industry Shop Experience (AISE) · Diagnose. Test. Learn. Master. · Educational simulation software · ASE-aligned preparation, not official ASE certification
       </footer>
     </div>
   );
