@@ -15,6 +15,7 @@ export function ScanTool({
   onUse: () => void;
 }) {
   const [tab, setTab] = useState<"codes" | "freeze" | "live">("codes");
+  const [mode, setMode] = useState<"virtual" | "live">("virtual");
   const [cleared, setCleared] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [history, setHistory] = useState<{ t: number; stft: number; ltft: number; rpm: number }[]>([]);
@@ -25,25 +26,27 @@ export function ScanTool({
   }, [onUse]);
 
   useEffect(() => {
+    if (mode !== "virtual") return;
     tick.current += 1;
     setHistory((h) =>
       [...h, { t: tick.current, stft: data.stft, ltft: data.ltft, rpm: data.rpm }].slice(-60),
     );
-  }, [data]);
+  }, [data, mode]);
 
   return (
     <div className="panel-instrument overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border bg-panel px-4 py-3">
-        <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
-          OBD-II Scan Tool
-        </span>
-        <span className="label-tech text-caution">SIMULATED · NO VEHICLE CONNECTION</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-panel px-4 py-3">
+        <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">OBD-II Scan Tool</span>
+        <div className="inline-flex rounded-sm border border-border bg-background p-1" role="group" aria-label="OBD-II data source">
+          <button type="button" aria-pressed={mode === "virtual"} onClick={() => setMode("virtual")} className={mode === "virtual" ? "rounded-sm bg-primary px-3 py-1.5 text-xs font-semibold uppercase text-primary-foreground" : "rounded-sm px-3 py-1.5 text-xs font-semibold uppercase text-muted-foreground"}>Virtual</button>
+          <button type="button" aria-pressed={mode === "live"} onClick={() => setMode("live")} className={mode === "live" ? "rounded-sm bg-destructive px-3 py-1.5 text-xs font-semibold uppercase text-destructive-foreground" : "rounded-sm px-3 py-1.5 text-xs font-semibold uppercase text-muted-foreground"}>Real vehicle</button>
+        </div>
       </div>
-
-      <div className="border-b border-caution/40 bg-caution/10 px-4 py-2 text-xs text-caution">
-        Training data only. This scan tool is connected to the virtual vehicle simulator,
-        not a physical OBD-II adapter. Real ELM327 support is being developed separately.
-      </div>
+      {mode === "virtual" ? (
+        <div className="border-b border-caution/40 bg-caution/10 px-4 py-2 text-xs text-caution">SIMULATED DATA · Virtual vehicle only. Readings respond to the training scenario and test-drive controls.</div>
+      ) : (
+        <div className="border-b border-border bg-panel px-4 py-2 text-xs text-muted-foreground">LIVE VEHICLE MODE · Awaiting verified ELM327 connection. Simulated readings are hidden.</div>
+      )}
 
       <div className="flex border-b border-border">
         {(["codes", "freeze", "live"] as const).map((t) => (
@@ -62,7 +65,9 @@ export function ScanTool({
       <div className="p-4">
         {tab === "codes" && (
           <div className="space-y-3">
-            {cleared ? (
+            {mode === "live" ? (
+              <div className="rounded-sm border border-border bg-panel p-4"><p className="font-semibold">Live trouble codes not yet read</p><p className="mt-1 text-sm text-muted-foreground">Connect and initialize the ELM327 adapter before reading stored, pending, or permanent DTCs. Virtual scenario codes are hidden in Real Vehicle mode.</p></div>
+            ) : cleared ? (
               <p className="text-sm text-muted-foreground">
                 Codes cleared. Note that clearing without repair also erases freeze frame evidence.
               </p>
@@ -123,7 +128,9 @@ export function ScanTool({
 
         {tab === "freeze" && (
           <div>
-            {Object.keys(freezeFrame).length ? (
+            {mode === "live" ? (
+              <p className="text-sm text-muted-foreground">Live freeze-frame data has not been retrieved. It will appear after a verified adapter connection and supported Mode 02 response.</p>
+            ) : Object.keys(freezeFrame).length ? (
               <dl className="grid grid-cols-2 gap-2">
                 {Object.entries(freezeFrame).map(([k, v]) => (
                   <div key={k} className="rounded-sm border border-border bg-panel px-3 py-2">
@@ -142,6 +149,7 @@ export function ScanTool({
 
         {tab === "live" && (
           <div className="space-y-4">
+            {mode === "virtual" ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Pid label="RPM" value={data.rpm} unit="rpm" />
               <Pid label="Load" value={data.load} unit="%" />
@@ -159,6 +167,14 @@ export function ScanTool({
               <Pid label="Voltage" value={data.batteryVoltage} unit="V" alert={data.batteryVoltage < 13.2} />
               <Pid label="Misfires" value={data.misfireCount} unit="ct" alert={data.misfireCount > 0} />
             </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {["RPM", "Load", "MAF", "MAP", "STFT", "LTFT", "O2 B1S1", "A/F ratio", "Coolant", "IAT", "TPS", "Timing", "Fuel pressure", "Voltage", "Misfires"].map((label) => (
+                  <div key={label} className="rounded-sm border border-border bg-panel px-3 py-2"><div className="label-tech">{label}</div><div className="readout text-sm text-muted-foreground">—</div><span className="text-[0.65rem] text-muted-foreground">Awaiting live PID</span></div>
+                ))}
+                <p className="col-span-full text-xs text-muted-foreground">Live values will populate this same dashboard after the ELM327 bridge and ECU responses are verified. Unsupported PIDs remain unavailable.</p>
+              </div>
+            )}
 
             <div className="rounded-sm border border-border bg-panel p-3">
               <span className="label-tech">Fuel trim graph (STFT / LTFT)</span>
