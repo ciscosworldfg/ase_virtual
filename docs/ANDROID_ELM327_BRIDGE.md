@@ -41,6 +41,30 @@ The TypeScript request validator is `parseElmBridgeRequest` in `src/lib/obd/brid
 5. Parse ELM prompts and ISO 15765-4 CAN responses defensively; report unsupported, timeout, malformed, and disconnected states distinctly.
 6. Label vehicle-provided data as live and all simulator values as simulated. Never silently fall back between them.
 
+
+## Implementation review: important corrections before vehicle testing
+
+The supplied Kotlin sketch is a useful outline, not production-ready socket code. Apply these requirements before using it with a vehicle:
+
+- Do not parse ELM output with `BufferedReader.readLine()` while `ATL0` is active. Read bytes until the ELM prompt byte `>` is received, with a bounded deadline and maximum response size. Preserve the reset banner even if it arrives without line endings.
+- Serialize every adapter operation through one coroutine `Mutex` or single-consumer command queue. Never allow concurrent reads/writes on the same ELM socket.
+- Use suspend functions end-to-end; do not use `runBlocking` on UI or service request paths.
+- Treat every initialization command as a checked transaction. Require a valid reset banner after `ATZ`; verify expected acknowledgements for setup commands; fail and close the socket on initialization errors. Do not report `connected: true` until initialization and protocol setup are complete.
+- Include `ATST32` in the actual initialization sequence. `ATST32` is an adapter timeout setting, not a guarantee that all vehicle replies complete within 200 ms. Use a longer bounded deadline for the initial `0100` automatic protocol search and tune later per vehicle.
+- Append exactly one carriage return byte (`0x0D`) to each adapter command. Strip the ELM prompt and normalize whitespace/case before parsing; account for `SEARCHING...`, `BUS INIT...`, `NO DATA`, `?`, and adapter error text.
+- Use Android's selected Wi-Fi `Network.socketFactory` for the adapter TCP socket where the adapter network has no internet, so the WebView can retain its internet route.
+- The Android process must independently validate host/port and enforce the read-only OBD command allowlist. Never trust validation performed only in TypeScript.
+- Keep the adapter connection lifecycle separate from WebSocket/WebView lifecycle. A WebSocket ping/pong heartbeat can detect a dead browser connection; it is not an OBD command and should not be sent to the ECU.
+- If using a localhost WebSocket server, account for HTTPS-to-WS mixed-content restrictions, origin validation, authentication, and server binding. Do not bind an unauthenticated control server to `0.0.0.0`. The current preferred first implementation remains the narrowly scoped Android WebView JavaScript bridge, avoiding an unnecessary local network listener; the JSON message contract remains transport-independent.
+
+### Read-only first-connection sequence
+
+1. Connect TCP and validate the ELM reset banner.
+2. Apply adapter setup sequentially: `ATE0`, `ATL0`, `ATS0`, `ATH0`, `ATAT1`, `ATST32`, `ATSP0`.
+3. Query `0100` and parse the supported-PID bitmap before requesting individual live PIDs.
+4. Query `0101`, `03`, `07`, and `0A` sequentially. Mark permanent DTC support as unsupported/unknown when the ECU does not support it; never interpret `NO DATA` as proof that no permanent DTCs exist.
+5. Publish status and readings only after parsing actual adapter responses. On any socket loss, publish disconnected and discard stale live readings.
+
 ## Safety and privacy
 - Read-only by design. Block service 04, actuator tests, coding, adaptation, and arbitrary command passthrough from web content.
 - User initiates every connection. Show adapter endpoint and connection state.
