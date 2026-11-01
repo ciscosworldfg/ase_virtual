@@ -111,4 +111,8 @@ export const courses: Course[] = levels.map(([code, level, system]) => {
       explanation: `${s.explanation} ${level} pathway: ${pathway.method}`,
       activity: `${s.activity} ${level} application: ${pathway.challenge} Record observations, test conditions, and whether each specification is OEM-verified.`,
       challenge: pathway.challenge,
-      check: level === "Beginner" || (code === "A1" && a1LevelChecks[level]?.[i]) ? (code === "A1" && a1LevelChecks[level]?.[i] ? a1LevelChecks[level][i].check : s.check) : level === "Intermediate" ? `What additional evidence and next test would strengthen this c
+      check: level === "Beginner" || (code === "A1" && a1LevelChecks[level]?.[i]) ? (code === "A1" && a1LevelChecks[level]?.[i] ? a1LevelChecks[level][i].check : s.check) : level === "Intermediate" ? `What additional evidence and next test would strengthen this conclusion? ${s.check}` : level === "Advanced" ? `How would you separate competing causes before authorizing a repair? ${s.check}` : `What evidence would make this diagnosis defensible, and what remains unproven? ${s.check}`,
+      answer: level === "Beginner" || (code === "A1" && a1LevelChecks[level]?.[i]) ? (code === "A1" && a1LevelChecks[level]?.[i] ? a1LevelChecks[level][i].answer : s.answer) : level === "Intermediate" ? `${s.answer} Then choose and document the next test that best distinguishes the remaining possibilities, using the exact vehicle's service information.` : level === "Advanced" ? `${s.answer} Compare at least two plausible causes, choose a test that separates them, and state the limits of the result before recommending a repair.` : `${s.answer} Defend the conclusion with repeatable measurements, identify unresolved uncertainty, and specify the post-repair evidence required for sign-off.`,
+    }))
+  };
+});
