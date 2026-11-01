@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import { OctagonX, ShieldAlert } from "lucide-react";
 import { SiteNav } from "@/components/ase/SiteNav";
 import { CustomerChat } from "@/components/ase/CustomerChat";
-import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
@@ -26,10 +25,10 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Scenario unavailable | ASE Virtual" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Scenario unavailable | AISE Virtual" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.title} | ASE Virtual diagnostic session`;
+    const title = `${loaderData.title} | AISE Virtual diagnostic session`;
     return {
       meta: [
         { title },
@@ -44,7 +43,6 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
 
 const BASE_STAGES = [
   { id: "interview", label: "Customer" },
-  { id: "testdrive", label: "Test drive" },
   { id: "inspect", label: "Garage" },
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
@@ -89,7 +87,6 @@ function Session() {
   }, []);
 
   const useInterview = useCallback(() => markUsed("interview"), [markUsed]);
-  const useDrive = useCallback(() => markUsed("testdrive"), [markUsed]);
   const useInspect = useCallback(() => markUsed("inspect"), [markUsed]);
   const useScan = useCallback(() => markUsed("scan"), [markUsed]);
   const useMeter = useCallback(() => markUsed("meter"), [markUsed]);
@@ -206,15 +203,6 @@ function Session() {
         <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_20rem]">
           <div className="space-y-4">
             {stage === "interview" && <CustomerChat scenario={scenario} onUse={useInterview} />}
-            {stage === "testdrive" && (
-              <TestDrive
-                scenario={scenario}
-                vehicle={vehicle}
-                state={state}
-                setState={setState}
-                onUse={useDrive}
-              />
-            )}
             {stage === "inspect" && <Garage points={scenario.inspection} onUse={useInspect} />}
             {stage === "scan" && (
               <ScanTool
