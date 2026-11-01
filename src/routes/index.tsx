@@ -92,7 +92,7 @@ function Landing() {
             <p className="mt-2 text-muted-foreground">
               No account, no setup. Work one training fault from complaint to root cause in about a
               minute — then take the same vehicle into the full simulator with the scan tool,
-              multimeter and test drive.
+              multimeter and inspection workflow.
             </p>
           </div>
           <QuickDemo />
