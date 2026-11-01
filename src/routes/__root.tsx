@@ -81,14 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "AISE Virtual is an interactive automotive diagnostic training lab. Diagnose, test, learn and build technician-level skills through guided lessons and vehicle simulations.",
+          "AISE Virtual — Automotive Industry Shop Experience (AISE). Diagnose. Test. Learn. Master. Build technician-level skills through guided lessons, vehicle simulations, 3D engine exploration and OBD-II training.",
       },
       { name: "author", content: "AISE Virtual" },
       { property: "og:title", content: "AISE Virtual — Diagnose. Test. Learn. Master." },
       {
         property: "og:description",
         content:
-          "An interactive automotive learning and diagnostic lab with guided A1–A8 curriculum, 3D engine exploration and OBD-II training.",
+          "Automotive Industry Shop Experience (AISE): an interactive automotive learning and diagnostic lab with guided A1–A8 curriculum, 3D engine exploration and OBD-II training.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
