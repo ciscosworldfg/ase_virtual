@@ -31,13 +31,13 @@ The web UI sends these requests to the Android host:
 - `disconnect`: close the adapter session.
 - `status`: return the current connection status.
 
-The TypeScript request validator is `parseElmBridgeRequest` in `src/lib/obd/bridgeProtocol.ts`. It rejects public IP destinations, malformed ports, unknown message types, arbitrary ELM AT commands, and commands outside the read-only allowlist. The initial allowlist includes supported standard Mode 01 PIDs and generic DTC read services `03` and `07`; service `04` is explicitly excluded. Android must independently enforce the same policy—web validation is not a security boundary.
+The TypeScript request validator is `parseElmBridgeRequest` in `src/lib/obd/bridgeProtocol.ts`. It rejects public IP destinations, malformed ports, unknown message types, arbitrary ELM AT commands, and commands outside the read-only allowlist. The initial allowlist includes Mode 01 supported-PID and monitor-status requests (`0100`, `0101`), selected standard live PIDs, and generic DTC read services `03`, `07`, and `0A`; service `04` is explicitly excluded. Android must independently enforce the same policy—web validation is not a security boundary.
 
 ## Initial protocol
 1. Open TCP socket with bounded connect/read timeouts.
-2. Initialize with ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0.
-3. Read supported PIDs (0100) and request standard live PIDs only when supported by the ECU.
-4. Read stored and pending generic emissions DTCs with services 03 and 07; never issue service 04 (clear DTCs).
+2. Initialize the adapter from native code only. Send `ATZ`, wait 1–1.5 seconds for the reset banner, then send `ATE0`, `ATL0`, `ATS0`, `ATH0`, `ATAT1`, `ATST32`, and `ATSP0`. Use `ATSP6` only when the vehicle's ISO 15765-4 CAN 11-bit/500 kbit protocol is known; otherwise retain automatic protocol search. Parse each prompt/response before sending the next command.
+3. Query supported Mode 01 PIDs with `0100`; query `0101` for MIL status and DTC count. Request individual live PIDs only when the ECU's supported-PID bitmap indicates support.
+4. Read stored, pending, and permanent generic emissions DTCs with `03`, `07`, and `0A` respectively. Permanent DTC support depends on vehicle/ECU capability. Never issue service `04` (clear DTCs).
 5. Parse ELM prompts and ISO 15765-4 CAN responses defensively; report unsupported, timeout, malformed, and disconnected states distinctly.
 6. Label vehicle-provided data as live and all simulator values as simulated. Never silently fall back between them.
 
@@ -49,7 +49,7 @@ The TypeScript request validator is `parseElmBridgeRequest` in `src/lib/obd/brid
 
 ## Current implementation status
 - [x] Remove the false Link established claim from the simulator scan tool.
-- [ ] Implement Android companion project and native Wi-Fi socket client.\n- [x] Define and validate the native-to-web JSON message contract; decode the sample RPM response.\n- [x] Define and validate the web-to-native connect, command, disconnect, and status requests.
+- [ ] Implement Android companion project and native Wi-Fi socket client.\n- [x] Define and validate the native-to-web JSON message contract; decode the sample RPM response.\n- [x] Define and validate the web-to-native connect, command, disconnect, and status requests.\n- [x] Add read-only requests for supported-PID bitmap, MIL/DTC status, stored, pending, and permanent DTCs.\n- [x] Document the native-only ELM initialization sequence and protocol selection guidance.
 - [ ] Add a restricted JavaScript bridge and real-data UI mode.
 - [ ] Test against the user's specific ELM327 adapter and vehicle.
 - [ ] Verify supported PIDs, DTC parsing, reconnect behavior, and browser/app lifecycle.
