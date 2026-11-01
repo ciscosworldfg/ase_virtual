@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or ref to verify"
+        required: true
+        default: "feature/aise-full-shop-experience"
+        type: string
 
 permissions:
   contents: read
@@ -18,17 +25,15 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install locked dependencies
         run: bun install --frozen-lockfile
-
       - name: Run ESLint
         run: bun run lint -- --rule 'prettier/prettier: off'
-
       - name: Build production bundle
         run: bun run build
