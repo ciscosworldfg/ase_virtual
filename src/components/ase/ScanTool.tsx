@@ -88,7 +88,7 @@ export function ScanTool({
               </p>
             )}
 
-            {!cleared && codes.length > 0 && (
+            {mode === "virtual" && !cleared && codes.length > 0 && (
               <div>
                 {confirming ? (
                   <div className="rounded-sm border border-caution/60 bg-caution/10 p-3">
