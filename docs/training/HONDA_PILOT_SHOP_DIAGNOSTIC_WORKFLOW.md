@@ -1,12 +1,12 @@
 # AISE Virtual — Honda Pilot Shop Diagnostic and Repair Workflow
 
 **Status:** Technician workflow and training acceptance specification. This is not a completed vehicle diagnosis, repair authorization, or proof that any component has failed.  
-**Target vehicle:** Reported 2005 Honda Pilot V6 3.5L; exact VIN, engine configuration, calibration and code applicability must be confirmed before vehicle-specific work.  
+**Target vehicle:** VIN confirmed by the user as `2HKYF18445H571161`. Reported vehicle: 2005 Honda Pilot V6 3.5L. Engine configuration, calibration and code applicability must still be checked against the vehicle and Shop Service Repair Manual before vehicle-specific work.  
 **Purpose:** Convert the supplied scan evidence and relevant safety-campaign research into a repeatable shop process inside AISE Virtual, using the vehicle's **Shop Service Repair Manual** as the controlling authority for procedures, wiring diagrams, specifications, torque values and test limits.
 
 ## 1. Job intake and vehicle identification — required first
 
-1. Record the full 17-character VIN from the windshield and driver's door-jamb certification label. Resolve the conflicting supplied VIN strings before selecting service information or checking campaign eligibility.
+1. User-confirmed VIN on file: `2HKYF18445H571161`. At the vehicle, independently compare it with the windshield VIN and driver's door-jamb certification label before selecting service information or checking campaign eligibility. The earlier conflicting text string is superseded by this user confirmation.
 2. Confirm model year, model, engine, transmission, drivetrain, emissions label/calibration ID and any installed equipment.
 3. Record mileage, customer complaint, warning lamps, symptoms, recent repairs, battery condition and whether the vehicle is safe to operate.
 4. Connect a compatible scan tool and record adapter type, protocol, ECU/module address, software/calibration identifiers, timestamp and battery voltage.
@@ -98,7 +98,7 @@ Every test result must be attributable to a timestamp, vehicle state, module, PI
 - Car Scanner reported ELM adapter Connected and ECU Connected.
 - Protocol reported: ISO 9141-2 (5-baud initialization, 10.4 kbaud).
 - ECU address shown: 09.
-- VIN in connection screenshot: `2HKYF18445H571161`; another supplied text string conflicts and must be verified.
+- VIN confirmed by user: `2HKYF18445H571161`; the earlier conflicting text string is superseded.
 - MIL: ON.
 - All Sensors reports: DTC count 2.
 - Separate DTC report: five codes marked Confirmed.
