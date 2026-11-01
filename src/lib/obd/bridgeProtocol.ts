@@ -163,8 +163,8 @@ export type ElmBridgeRequest =
 // Only standard, read-only emissions diagnostics are permitted from web content.
 // No AT commands, service 04 (clear DTCs), actuator tests, or ECU write services.
 const ALLOWED_OBD_COMMANDS = new Set([
-  "0100", "0105", "010B", "010C", "010D", "010F", "0110", "0111",
-  "0114", "0115", "03", "07",
+  "0100", "0101", "0105", "010B", "010C", "010D", "010F", "0110", "0111",
+  "0114", "0115", "03", "07", "0A",
 ]);
 
 function isPrivateIpv4(host: string): boolean {
