@@ -77,18 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Industry Shop Experience" },
       {
         name: "description",
         content:
           "An AI-powered virtual automotive diagnostic laboratory: test drive, scan, measure and prove the root cause.",
       },
-      { name: "author", content: "Learning Automotive Technology (LAT)" },
-      { property: "og:title", content: "Learning Automotive Technology (LAT) — Diagnose. Test. Learn. Master." },
+      { name: "author", content: "AISE Virtual — Automotive Industry Shop Experience" },
+      { property: "og:title", content: "AISE Virtual — Plug and Learn. Diagnose. Repair. Master." },
       {
         property: "og:description",
         content:
-          "Virtual test drives, OBD-II live data and evidence-based diagnostic scoring for ASE-aligned training.",
+          "Interactive automotive training, diagnostic simulations, 3D engine exploration, and evidence-based troubleshooting.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
