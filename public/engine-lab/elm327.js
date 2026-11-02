@@ -48,6 +48,7 @@ export class ElmWifi {
   timer = null;
   codes = [];
   telemetry = {};
+  lastSuccessfulScan = null;
   error = '';
   syncing = false;
   monitoring = true;
@@ -118,7 +119,12 @@ export class ElmWifi {
       const match = monitor.replace(/\s/g, '').match(/4101([0-9A-F]{2})/i);
       if (match) this.telemetry.mil = Boolean(parseInt(match[1], 16) & 128);
       this.codes = [...stored.map(code => ({ code, status: 'stored' })), ...pending.map(code => ({ code, status: 'pending' }))];
-      this.syncedAt = new Date(); this.error = '';
+      this.syncedAt = new Date();
+      this.lastSuccessfulScan = {
+        at: this.syncedAt,
+        mil: this.telemetry.mil ?? null,
+        codes: this.codes.map(item => ({ ...item })),
+      }; this.error = '';
     } catch (error) { if(generation===this.generation)this.error = error instanceof Error ? error.message : 'DTC sync failed.'; throw error; }
     finally { if(generation===this.generation){this.syncing = false; this.notify();} }
   }
@@ -147,6 +153,9 @@ export class ElmWifi {
     clearTimeout(this.timer); this.timer = null;
     const socket = this.socket; this.socket = null; socket?.close();
     if (this.pending) { clearTimeout(this.pending.timer); this.pending.reject(new Error(error || 'Adapter disconnected.')); this.pending = null; }
-    this.status = 'disconnected'; this.buffer = ''; this.codes = []; this.telemetry = {}; this.samples={};this.history={};this.monitoring=true;this.syncing=false;this.syncedAt = null; this.error = error; this.notify();
+    this.status = 'disconnected'; this.buffer = '';
+    // Keep the last confirmed scan for reference, but it is stale once the adapter disconnects.
+    this.samples={};this.history={};this.monitoring=true;this.syncing=false;
+    this.notify(); this.error = error; this.notify();
   }
 }
