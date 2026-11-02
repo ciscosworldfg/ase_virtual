@@ -22,7 +22,7 @@ class Mesh extends Group {
 }
 class Geometry { constructor(...args){this.args=args} }
 class Material { constructor(options){this.options=options} }
-const THREE={Group,Mesh,Vector3,CylinderGeometry:Geometry,MeshStandardMaterial:Material};
+const THREE={Group,Mesh,Vector3,CylinderGeometry:Geometry,TorusGeometry:Geometry,MeshStandardMaterial:Material,DoubleSide:2};
 
 test("builds six animated cylinder assemblies across two V banks",()=>{
   const banks=[new Group(),new Group()];
