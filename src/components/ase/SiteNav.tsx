@@ -22,7 +22,9 @@ export function SiteNav() {
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
               AISE VIRTUAL
             </span>
-            <span className="label-tech block text-[0.6rem]">Automotive Industry Shop Experience</span>
+            <span className="label-tech block text-[0.6rem]">
+              Automotive Industry Shop Experience
+            </span>
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
@@ -44,7 +46,10 @@ export function SiteNav() {
           </Link>
         </nav>
       </div>
-      <nav aria-label="Mobile section navigation" className="flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-2 sm:hidden">
+      <nav
+        aria-label="Mobile section navigation"
+        className="flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-2 sm:hidden"
+      >
         {links.map((l) => (
           <Link
             key={l.to}
