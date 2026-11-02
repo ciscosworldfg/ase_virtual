@@ -182,7 +182,7 @@ function Landing() {
               Simulation, not a repair manual
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              LAT — Learning Automotive Technology is independent ASE-aligned preparation and training software. It is not
+              AISE Virtual provides independent automotive education and ASE-aligned preparation. It is not
               affiliated with or endorsed by ASE, and it does not issue certification. Always follow
               manufacturer service information and safety procedures on a real vehicle.
             </p>
@@ -191,7 +191,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        Learning Automotive Technology (LAT) · Educational simulation software · ASE-aligned preparation, not official ASE
+        AISE Virtual · Educational simulation software · ASE-aligned preparation, not official ASE
         certification
       </footer>
     </div>
