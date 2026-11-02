@@ -44,7 +44,7 @@ main{grid-template-columns:minmax(0,1fr) 390px}
 <label><input type="checkbox" id="auto" checked> Auto-rotate</label>
 <label><input type="checkbox" id="label-toggle" checked> Part labels</label>
 <label>Explode <input type="range" id="ex" min="0" max="100" value="0"></label>
-<div class="engine-controls" role="group" aria-label="Engine operation simulation"><span class="simtag">SIMULATION · NOT VEHICLE DATA</span><button id="engine-start" class="on" type="button">Start engine</button><button id="engine-stop" type="button" disabled>Stop</button><label>Target RPM <input id="engine-target" type="range" min="650" max="3000" step="50" value="750"></label><output id="engine-target-value">750</output><strong id="engine-rpm">0 RPM</strong><span id="engine-state" class="tag">ENGINE OFF</span><span id="engine-cycle" class="tag">Intake</span></div>
+<div class="engine-controls" role="group" aria-label="Engine operation simulation"><span class="simtag">SIMULATION · NOT VEHICLE DATA</span><button id="engine-start" class="on" type="button">Start engine</button><button id="engine-stop" type="button" disabled>Stop</button><label>Target RPM <input id="engine-target" type="range" min="650" max="3000" step="50" value="750"></label><output id="engine-target-value">750</output><strong id="engine-rpm">0 RPM</strong><span id="engine-state" class="tag">ENGINE OFF</span><span id="engine-cycle" class="tag" aria-live="polite">Intake</span><span id="engine-cycle-detail" class="tag" aria-live="polite">Piston moves down; intake valve opens and draws air into the cylinder.</span></div>
 <button id="rcam">Reset camera</button><button id="reset">Reset all</button></header>
 <main><div id="stage"><canvas id="cv" aria-label="Interactive 3D engine model"></canvas><div id="verification">Generic V6 · J35A6 details approximate / unverified</div><div id="labels" aria-label="Engine part labels"></div><div id="engine-dtc" hidden role="status"></div><div id="load">Loading 3D engine…</div><div id="err" role="alert"><div><h3>3D view could not start</h3><p id="errmsg" class="mut"></p><button onclick="location.reload()">Try again</button></div></div><div id="hint">Drag to orbit · right-drag / Shift-drag / two-finger drag to pan · scroll/pinch to zoom · click a part</div></div>
 <aside><section id="obd-dashboard" aria-label="OBD-II live dashboard"></section><div id="scan"><b>Trouble codes</b> <span id="src" class="chip">NO SOURCE</span>
@@ -300,10 +300,18 @@ cv.addEventListener("wheel",e=>{e.preventDefault();rot.r=Math.max(3,Math.min(20,
 function hit(e){const r=cv.getBoundingClientRect();nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(nd,C);
  const h=ray.intersectObjects(meshes.filter(m=>{let o=m;while(o){if(!o.visible)return false;o=o.parent}return true}),false)[0];return h?h.object.userData.part:null}
 new ResizeObserver(()=>{const s=$("#stage"),w=s.clientWidth,h=s.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix();if(sel)inspect(sel)}).observe($("#stage"));
-const clock=new THREE.Clock();let exS=0,lastFrame=0,lastLabels=0;
+const clock=new THREE.Clock();let exS=0,lastFrame=0,lastLabels=0,lastTeachingUpdate=0,displayedPhase="",displayedDetail="";
+const phaseLessons={Intake:"Piston moves down; intake valve opens and draws air into the cylinder.",Compression:"Both valves close; piston moves up and compresses the air-fuel mixture.",Power:"Spark ignites the mixture; expanding gases push the piston down.",Exhaust:"Exhaust valve opens; piston moves up and pushes burned gases out."};
+function updateTeachingPhase(rpm,cycleAngle,now){
+ const phase=rpm<30?"Stopped":fourStrokePhase(cycleAngle);
+ if(phase==="Stopped"){displayedPhase="Stopped";displayedDetail="Engine stopped. Start the simulation to observe the four-stroke cycle.";lastTeachingUpdate=now;}
+ else if(phase!==displayedPhase||now-lastTeachingUpdate>=2500){displayedPhase=phase;displayedDetail=phaseLessons[phase];lastTeachingUpdate=now;}
+ $("#engine-cycle").textContent=displayedPhase;
+ $("#engine-cycle-detail").textContent=displayedDetail;
+}
 (function loop(now=0){requestAnimationFrame(loop);if(now-lastFrame<16)return;lastFrame=now;const dt=Math.min(clock.getDelta(),.05),ex=$("#ex").value/100;
  const desired=engineRunning?targetRpm:0;currentRpm+=(desired-currentRpm)*Math.min(1,dt*2.4);if(currentRpm<1)currentRpm=0;const adapterActive=wifi.status!=="disconnected";if(adapterActive&&engineRunning){engineRunning=false;targetRpm=0;currentRpm=0;}const liveRpm=wifi.status==="connected"&&Number.isFinite(wifi.telemetry.rpm);const motionRpm=liveRpm?wifi.telemetry.rpm:currentRpm;engineMotion?.update(dt,motionRpm);
- $("#engine-rpm").textContent=Math.round(motionRpm)+" RPM";$("#engine-state").textContent=liveRpm?"LIVE VEHICLE RPM":adapterActive?"LIVE RPM UNAVAILABLE":currentRpm<30?"ENGINE OFF":currentRpm<desired-100?"STARTING":"SIMULATED RUNNING";$("#engine-cycle").textContent=motionRpm<30?"Stopped":fourStrokePhase(engineMotion?.crankAngle||0)+" stroke";$("#engine-start").disabled=adapterActive||engineRunning;$("#engine-stop").disabled=adapterActive||!engineRunning;$("#engine-target").disabled=adapterActive;
+ $("#engine-rpm").textContent=Math.round(motionRpm)+" RPM";$("#engine-state").textContent=liveRpm?"LIVE VEHICLE RPM":adapterActive?"LIVE RPM UNAVAILABLE":currentRpm<30?"ENGINE OFF":currentRpm<desired-100?"STARTING":"SIMULATED RUNNING";updateTeachingPhase(motionRpm,engineMotion?.crankAngle||0,now);$("#engine-start").disabled=adapterActive||engineRunning;$("#engine-stop").disabled=adapterActive||!engineRunning;$("#engine-target").disabled=adapterActive;
  if($("#auto").checked)rot.az+=dt*.25;
  exS+=(ex-exS)*Math.min(1,dt*6);const fit=(1+exS*.75)*(C.aspect<1?Math.min(1.9,1/C.aspect*.85+.15):1),rr=rot.r*fit,ty=tgt.y+exS*.6;
  C.position.set(tgt.x+rr*Math.sin(rot.az)*Math.cos(rot.el),ty+rr*Math.sin(rot.el),tgt.z+rr*Math.cos(rot.az)*Math.cos(rot.el));C.lookAt(tgt.x,ty,tgt.z);
