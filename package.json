@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "format": "prettier --write .",
     "test": "node --test src/test/*.test.mjs"
   },
