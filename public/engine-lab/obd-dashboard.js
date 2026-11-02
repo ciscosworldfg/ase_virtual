@@ -9,10 +9,11 @@ export function createObdDashboard(container,client){
     const connected=client.status==='connected';
     toggle.disabled=!connected;toggle.textContent=client.monitoring?'Ⅱ':'▶';toggle.title=client.monitoring?'Pause live readings':'Resume live readings';toggle.setAttribute('aria-label',toggle.title);
     container.querySelector('#monitor-state').textContent=connected?(client.monitoring?'Live · sequential sensor updates':'Paused · readings frozen'):client.status==='connecting'?'Connecting…':'Awaiting vehicle connection';
-    container.querySelector('#monitor-source').textContent=connected?(client.monitoring?'LIVE VEHICLE · READ ONLY':'PAUSED VEHICLE SNAPSHOT'):'VEHICLE DATA ONLY';
-    container.querySelector('#monitor-mil').textContent=`MIL ${connected&&client.telemetry.mil!=null?(client.telemetry.mil?'ON':'OFF'):'—'}`;
-    container.querySelector('#monitor-mil').classList.toggle('mil-on',connected&&client.telemetry.mil===true);
-    container.querySelector('#monitor-codes').textContent=connected&&client.syncedAt?`${client.codes.filter(c=>c.status==='stored').length} stored · ${client.codes.filter(c=>c.status==='pending').length} pending`:'No vehicle scan';
+    container.querySelector('#monitor-source').textContent=connected?(client.monitoring?'LIVE VEHICLE · READ ONLY':'PAUSED VEHICLE SNAPSHOT'):(client.lastSuccessfulScan?'LAST CONFIRMED SCAN · STALE':'NO LIVE CONNECTION');
+    const scan=connected?{mil:client.telemetry.mil,codes:client.codes,at:client.syncedAt}:client.lastSuccessfulScan;
+    container.querySelector('#monitor-mil').textContent=`MIL ${scan?.mil==null?'—':scan.mil?'ON':'OFF'}${!connected&&scan?' · STALE':''}`;
+    container.querySelector('#monitor-mil').classList.toggle('mil-on',scan?.mil===true);
+    container.querySelector('#monitor-codes').textContent=scan? `${scan.codes.filter(c=>c.status==='stored').length} stored · ${scan.codes.filter(c=>c.status==='pending').length} pending${!connected?' · LAST SCAN':''}`:'No successful vehicle scan';
     for(const spec of MEASUREMENTS){
       const tile=container.querySelector(`[data-key="${spec.key}"]`),sample=client.samples[spec.key],age=sample?Math.floor((Date.now()-sample.at)/1000):null;
       const value=connected?client.telemetry[spec.key]:null;
