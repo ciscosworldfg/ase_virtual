@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GARAGE_PROTOCOL, partsForFailure } from "@/lib/garage/scenario-map";
 
-export function GarageLab({
-  failureId,
-  onUse,
-}: {
-  failureId: string;
-  onUse?: () => void;
-}) {
+export function GarageLab({ failureId, onUse }: { failureId: string; onUse?: () => void }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [used, setUsed] = useState(false);
   const parts = partsForFailure(failureId);
@@ -22,10 +16,7 @@ export function GarageLab({
         return;
       }
 
-      if (
-        (event.data.type === "focused" || event.data.type === "part-selected") &&
-        !used
-      ) {
+      if ((event.data.type === "focused" || event.data.type === "part-selected") && !used) {
         setUsed(true);
         onUse?.();
       }
@@ -76,11 +67,14 @@ export function GarageLab({
 
       {parts.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          This scenario has no verified component mapping in the current generic engine model. You can still inspect and select engine components, but the lab will not imply that a selected engine part caused a brake, transmission, chassis, or other unmapped fault.
+          This scenario has no verified component mapping in the current generic engine model. You can
+          still inspect and select engine components, but the lab will not imply that a selected
+          engine part caused a brake, transmission, chassis, or other unmapped fault.
         </p>
       ) : (
         <p className="text-xs text-muted-foreground">
-          Highlighted parts are related training systems, not confirmed failed components. Confirm every diagnosis with vehicle-specific service information and tests.
+          Highlighted parts are related training systems, not confirmed failed components. Confirm every
+          diagnosis with vehicle-specific service information and tests.
         </p>
       )}
     </section>
