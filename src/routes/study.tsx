@@ -9,13 +9,13 @@ import { DiagnosticWorksheet } from "@/components/study/DiagnosticWorksheet";
 export const Route = createFileRoute("/study")({
   head: () => ({
     meta: [
-      { title: "Study Hub — exams, protocols & 16-week roadmap | ASE Virtual" },
+      { title: "Study Hub — exams, protocols & 16-week roadmap | AISE Virtual" },
       {
         name: "description",
         content:
           "ASE exam practice bank with instructor rationale, master diagnostic field protocols, the 16-week mastery roadmap and the digital 7-step diagnostic worksheet.",
       },
-      { property: "og:title", content: "Study Hub | ASE Virtual" },
+      { property: "og:title", content: "Study Hub | AISE Virtual" },
       {
         property: "og:description",
         content:
