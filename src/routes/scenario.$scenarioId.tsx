@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/ase/SiteNav";
 import { CustomerChat } from "@/components/ase/CustomerChat";
 import { TestDrive } from "@/components/ase/TestDrive";
 import { Garage } from "@/components/ase/Garage";
+import { GarageLab } from "@/components/ase/GarageLab";
 import { ScanTool } from "@/components/ase/ScanTool";
 import { Multimeter } from "@/components/ase/Multimeter";
 import { ToolBench } from "@/components/ase/ToolBench";
@@ -47,6 +48,7 @@ const BASE_STAGES = [
   { id: "interview", label: "Customer" },
   { id: "testdrive", label: "Test drive" },
   { id: "inspect", label: "Garage" },
+  { id: "engine-lab", label: "3D Engine Lab" },
   { id: "scan", label: "Scan tool" },
   { id: "meter", label: "Multimeter" },
   { id: "diagnose", label: "Diagnosis" },
@@ -92,6 +94,7 @@ function Session() {
   const useInterview = useCallback(() => markUsed("interview"), [markUsed]);
   const useDrive = useCallback(() => markUsed("testdrive"), [markUsed]);
   const useInspect = useCallback(() => markUsed("inspect"), [markUsed]);
+  const useEngineLab = useCallback(() => markUsed("engine-lab"), [markUsed]);
   const useScan = useCallback(() => markUsed("scan"), [markUsed]);
   const useMeter = useCallback(() => markUsed("meter"), [markUsed]);
 
@@ -217,6 +220,9 @@ function Session() {
               />
             )}
             {stage === "inspect" && <Garage points={scenario.inspection} onUse={useInspect} />}
+            {stage === "engine-lab" && (
+              <GarageLab failureId={scenario.failure.id} onUse={useEngineLab} />
+            )}
             {stage === "scan" && (
               <ScanTool
                 data={data}
