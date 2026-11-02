@@ -101,7 +101,7 @@ export class ElmWifi {
     const request = this.chain.then(() => {
       if (!socket || socket !== this.socket || socket.readyState !== 1) throw new Error('Adapter is not connected.');
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => this.disconnect(`No reply to ${command}. Check ignition and adapter Wi-Fi.`), 12000);
+        const timer = setTimeout(() => this.disconnect(`No reply to ${command}. Check ignition and adapter Wi-Fi.`), 10000);
         this.pending = { resolve, reject, timer };
         try { socket.send(command + '\r'); } catch { this.disconnect('Could not send to adapter.'); }
       });
