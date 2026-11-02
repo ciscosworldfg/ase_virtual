@@ -16,17 +16,17 @@ import { vehicleById, vehicleName } from "@/lib/sim/vehicles";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Industry Shop Experience" },
       {
         name: "description",
         content:
-          "An AI-era virtual automotive laboratory: hear the vehicle, drive it, scan it, measure it, and prove the root cause before you touch a wrench.",
+          "An interactive automotive learning platform for diagnosis, repair, and shop-ready skills.",
       },
-      { property: "og:title", content: "Learning Automotive Technology (LAT) — Master the diagnosis before you touch the car" },
+      { property: "og:title", content: "AISE Virtual — Plug and Learn. Diagnose. Repair. Master." },
       {
         property: "og:description",
         content:
-          "Virtual test drives, OBD-II live data, multimeter testing and evidence-based diagnostic scoring for ASE-aligned training.",
+          "Interactive automotive training, diagnostic simulations, and evidence-based troubleshooting.",
       },
     ],
   }),
