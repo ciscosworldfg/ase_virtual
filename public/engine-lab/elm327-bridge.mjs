@@ -28,7 +28,7 @@ wss.on('connection', ws => {
     if (!ready || busy || !queue.length || tcp.destroyed) return;
     busy = true; tcp.write(queue.shift() + '\r');
     // A late reply must not be consumed as the next command's response.
-    timer = setTimeout(shutdown, 11000);
+    timer = setTimeout(shutdown, 10000);
   };
   tcp.setTimeout(20000, shutdown);
   tcp.on('connect', () => { ready = true; next(); });
