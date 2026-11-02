@@ -20,10 +20,13 @@ export function SiteNav() {
           </span>
           <span className="leading-none">
             <span className="block font-display text-lg font-bold tracking-[0.18em]">
-              AISE
+              AISE VIRTUAL
             </span>
             <span className="label-tech block text-[0.6rem]">Automotive Industry Shop Experience</span>
           </span>
+        </Link>
+        <Link to="/garage" className="ml-auto rounded-sm border border-primary/50 px-3 py-2 text-xs font-semibold text-primary sm:hidden">
+          3D Lab
         </Link>
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
           {links.map((l) => (
