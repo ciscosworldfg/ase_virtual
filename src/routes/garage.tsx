@@ -21,7 +21,7 @@ function GaragePage() {
       <SiteNav />
       <main className="flex min-h-0 flex-1 flex-col">
         <div className="border-b border-border bg-card px-4 py-2 text-xs text-muted-foreground">
-          <strong className="text-foreground">Training model:</strong> generic V6 geometry, not OEM CAD or a verified Honda J35A6. Current lab functions: orbit, zoom, pan, exploded view, component selection, and simulated DTC highlighting. Running mechanical animation, four-stroke timing, verified J35A6 geometry, and transmission modeling are not yet implemented. Live readings require a separately configured read-only bridge.
+          <strong className="text-foreground">Training model:</strong> generic V6 geometry, not OEM CAD or a verified Honda J35A6. The lab now includes an experimental slider-crank animation for pistons, connecting rods, crankshaft, camshafts and simplified four-stroke valve timing. Simulation RPM can drive the animation; when a supported live RPM PID is available, live RPM drives animation speed instead. This is educational motion, not OEM timing or validated J35A6 geometry. Transmission modeling and enhanced transmission diagnostics are not implemented.
         </div>
         <iframe
           src="/engine-lab/index.html"
