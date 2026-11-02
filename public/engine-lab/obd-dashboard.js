@@ -1,4 +1,4 @@
-import { MEASUREMENTS } from './obd-data.js';
+import { MEASUREMENTS, celsiusToFahrenheit, kmhToMph } from './obd-data.js';
 
 export function createObdDashboard(container,client){
   container.innerHTML=`<div class="dashboard-heading"><div><h2>OBD-II live monitor</h2><span id="monitor-state" class="mut">Awaiting vehicle connection</span></div><button id="monitor-toggle" title="Pause live readings" aria-label="Pause live readings" disabled>Ⅱ</button></div><div class="dashboard-summary"><span id="monitor-source">VEHICLE DATA ONLY</span><span id="monitor-mil">MIL —</span><span id="monitor-codes">No vehicle scan</span></div><div class="measurement-grid">${MEASUREMENTS.map(spec=>`<article class="measurement" data-key="${spec.key}"><div class="measurement-label">${spec.label}</div><div class="measurement-value"><strong>—</strong><span>${spec.unit}</span></div><canvas width="160" height="30" aria-label="${spec.label} recent readings"></canvas><small>Not connected</small></article>`).join('')}</div>`;
@@ -8,7 +8,7 @@ export function createObdDashboard(container,client){
   function render(){
     const connected=client.status==='connected';
     toggle.disabled=!connected;toggle.textContent=client.monitoring?'Ⅱ':'▶';toggle.title=client.monitoring?'Pause live readings':'Resume live readings';toggle.setAttribute('aria-label',toggle.title);
-    container.querySelector('#monitor-state').textContent=connected?(client.monitoring?'Live · sequential sensor updates':'Paused · readings frozen'):client.status==='connecting'?'Connecting…':'Awaiting vehicle connection';
+    container.querySelector('#monitor-state').textContent=connected?(client.monitoring?'Live · sequential sensor updates':'Paused · readings frozen'):client.status==='connecting'?'Connecting…':client.lastSuccessfulScan?'NOT LIVE · LAST SCAN STALE':'NOT LIVE · AWAITING VEHICLE';
     container.querySelector('#monitor-source').textContent=connected?(client.monitoring?'LIVE VEHICLE · READ ONLY':'PAUSED VEHICLE SNAPSHOT'):(client.lastSuccessfulScan?'LAST CONFIRMED SCAN · STALE':'NO LIVE CONNECTION');
     const scan=connected&&client.scanFresh?{mil:client.telemetry.mil,codes:client.codes,at:client.syncedAt}:client.lastSuccessfulScan;
     container.querySelector('#monitor-mil').textContent=`MIL ${scan?.mil==null?'—':scan.mil?'ON':'OFF'}${scan&&!client.scanFresh?' · STALE':''}`;
@@ -17,7 +17,10 @@ export function createObdDashboard(container,client){
     for(const spec of MEASUREMENTS){
       const tile=container.querySelector(`[data-key="${spec.key}"]`),sample=client.samples[spec.key],age=sample?Math.floor((Date.now()-sample.at)/1000):null;
       const value=connected?client.telemetry[spec.key]:null;
-      tile.querySelector('strong').textContent=value==null?'—':value.toLocaleString(undefined,{maximumFractionDigits:spec.key==='rpm'||spec.key==='speed'?0:1});
+      let display=value==null?'—':value.toLocaleString(undefined,{maximumFractionDigits:spec.key==='rpm'||spec.key==='speed'?0:1});
+      if(value!=null&&(spec.key==='coolant'||spec.key==='iat'))display=`${value.toFixed(1)} / ${celsiusToFahrenheit(value).toFixed(1)}`;
+      if(value!=null&&spec.key==='speed')display=`${value.toFixed(0)} / ${kmhToMph(value).toFixed(1)}`;
+      tile.querySelector('strong').textContent=display;
       tile.querySelector('small').textContent=!connected?'Not connected':!sample?'Waiting for reply':value==null?'Unavailable reply':!client.monitoring?`Paused · ${age}s ago`:age>15?`Stale · ${age}s ago`:`Updated ${age}s ago`;
       tile.classList.toggle('stale',connected&&sample&&age>15);
       const canvas=tile.querySelector('canvas'),ctx=canvas.getContext('2d');if(!ctx)continue;
