@@ -7,6 +7,7 @@
 *{box-sizing:border-box}html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--panel)}
+.engine-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:#0b1b35}.engine-controls label{display:flex;align-items:center;gap:4px;font-size:12px}.engine-controls input{max-width:100px}.engine-controls output,.engine-controls strong{font:600 12px ui-monospace,monospace;white-space:nowrap}.engine-controls .tag{white-space:nowrap}#engine-stop:disabled{opacity:.4;cursor:default}
 h1{font-size:15px;margin:0 8px 0 0}
 button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
 button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
@@ -43,6 +44,7 @@ main{grid-template-columns:minmax(0,1fr) 390px}
 <label><input type="checkbox" id="auto" checked> Auto-rotate</label>
 <label><input type="checkbox" id="label-toggle" checked> Part labels</label>
 <label>Explode <input type="range" id="ex" min="0" max="100" value="0"></label>
+<div class="engine-controls" role="group" aria-label="Engine operation simulation"><span class="simtag">SIMULATION · NOT VEHICLE DATA</span><button id="engine-start" class="on" type="button">Start engine</button><button id="engine-stop" type="button" disabled>Stop</button><label>Target RPM <input id="engine-target" type="range" min="650" max="3000" step="50" value="750"></label><output id="engine-target-value">750</output><strong id="engine-rpm">0 RPM</strong><span id="engine-state" class="tag">ENGINE OFF</span><span id="engine-cycle" class="tag">Intake</span></div>
 <button id="rcam">Reset camera</button><button id="reset">Reset all</button></header>
 <main><div id="stage"><canvas id="cv" aria-label="Interactive 3D engine model"></canvas><div id="verification">Generic V6 · J35A6 details approximate / unverified</div><div id="labels" aria-label="Engine part labels"></div><div id="engine-dtc" hidden role="status"></div><div id="load">Loading 3D engine…</div><div id="err" role="alert"><div><h3>3D view could not start</h3><p id="errmsg" class="mut"></p><button onclick="location.reload()">Try again</button></div></div><div id="hint">Drag to orbit · right-drag / Shift-drag / two-finger drag to pan · scroll/pinch to zoom · click a part</div></div>
 <aside><section id="obd-dashboard" aria-label="OBD-II live dashboard"></section><div id="scan"><b>Trouble codes</b> <span id="src" class="chip">NO SOURCE</span>
@@ -71,6 +73,8 @@ window.addEventListener("error",e=>{if(!window.__ok)fail("Error while starting: 
 import { ElmWifi, relatedParts } from './elm327.js';
 import { createComponentGeometry } from './component-geometry.js';
 import { createObdDashboard } from './obd-dashboard.js';
+import { createEngineMotion, fourStrokePhase } from './engine-kinematics.js';
+
 (function(){const c=document.createElement("canvas");if(!(c.getContext("webgl2")||c.getContext("webgl")))throw new Error("WebGL is not available in this browser or device. Try an up-to-date Chrome on Android/desktop, or enable hardware acceleration.")})();
 const $=s=>document.querySelector(s);
 const cv=$("#cv"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,.1,100);
@@ -116,12 +120,14 @@ const ENG={
  modern:{label:"Modern turbo",v:0,n:4,fuel:"gdi",vvt:1,egr:0,turbo:1,knock:1,thr:1,blurb:"Modern inline-4 turbo gasoline with direct injection and variable cam timing. (My reading of “mod engine”.)"}
 };
 let root,parts=[],meshes=[],cur="v6",sel=null,hov=null;
+let engineMotion=null,engineRunning=false,currentRpm=0,targetRpm=0;
 
 function part(o){o.g=refine(o.id,o.g);o.t=0;o.removed=false;o.g.userData.o=o;parts.push(o);(o.parent||root).add(o.g);return o}
 function build(k){
  if(root){S.remove(root)}root=new THREE.Group();S.add(root);parts=[];sel=null;hov=null;
  const E=ENG[k],n=E.n,nb=E.v?2:1,per=n/nb,L=per,xF=L/2+.35,sc=E.fuel!="port",intZ=E.v?0:1.05,intY=E.v?1.85:1.75;
  const frames=[...Array(nb)].map((_,b)=>{const f=new THREE.Group();f.rotation.x=E.v?(b?-1:1)*Math.PI/6:0;root.add(f);return f});
+ engineMotion=createEngineMotion(THREE,frames,E);
  const blk=part({id:"block",name:"Engine block & crankcase",fixed:1,codes:["P0300"],dist:0,dir:V(0,1,0),
   desc:"The structural core: cylinders, crankcase and main bearings. No dedicated sensor, but loss of compression from worn rings or valves shows up as misfires. Fixed in this model.",g:grp(bx(L+.4,1.0,1.25,0x59616d,0,-.1,0))});
  frames.forEach(f=>{const m=refine('block',grp(bx(L+.1,1.3,1.15,0x59616d,0,.75,0)));f.add(m)});
@@ -273,6 +279,9 @@ window.addEventListener("pagehide",()=>wifi.disconnect());
 /* tabs */
 ["v6"].forEach(k=>{const b=document.createElement("button");b.textContent=ENG[k].label;b.id="t"+k;b.onclick=()=>{cur=k;document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");build(k);clearScan();rot.az=.6};$("#tabs").appendChild(b)});
 $("#reset").onclick=()=>{parts.forEach(p=>p.removed=false);$("#ex").value=0;sel=null;show(null);paint()};
+$("#engine-start").onclick=()=>{engineRunning=true;targetRpm=Number($("#engine-target").value);$("#engine-start").disabled=true;$("#engine-stop").disabled=false};
+$("#engine-stop").onclick=()=>{engineRunning=false;targetRpm=0;$("#engine-start").disabled=false;$("#engine-stop").disabled=true};
+$("#engine-target").addEventListener("input",()=>{$("#engine-target-value").textContent=$("#engine-target").value;if(engineRunning)targetRpm=Number($("#engine-target").value)});
 /* orbit: full 360° azimuth, elevation limited to avoid flipping */
 const rot={az:.6,el:.35,r:9.5},tgt=new THREE.Vector3(0,.7,0),pts=new Map(),ray=new THREE.Raycaster(),nd=new THREE.Vector2();let moved=0,pan=0;const CAM0={az:.6,el:.35,r:9.5};
 $("#rcam").onclick=()=>{Object.assign(rot,CAM0);tgt.set(0,.7,0)};
@@ -292,6 +301,8 @@ function hit(e){const r=cv.getBoundingClientRect();nd.set((e.clientX-r.left)/r.w
 new ResizeObserver(()=>{const s=$("#stage"),w=s.clientWidth,h=s.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix();if(sel)inspect(sel)}).observe($("#stage"));
 const clock=new THREE.Clock();let exS=0,lastFrame=0,lastLabels=0;
 (function loop(now=0){requestAnimationFrame(loop);if(now-lastFrame<33)return;lastFrame=now;const dt=Math.min(clock.getDelta(),.05),ex=$("#ex").value/100;
+ const desired=engineRunning?targetRpm:0;currentRpm+=(desired-currentRpm)*Math.min(1,dt*2.4);if(currentRpm<1)currentRpm=0;engineMotion?.update(dt,currentRpm);
+ $("#engine-rpm").textContent=Math.round(currentRpm)+" RPM";$("#engine-state").textContent=currentRpm<30?"ENGINE OFF":currentRpm<desired-100?"STARTING":"RUNNING";$("#engine-cycle").textContent=currentRpm<30?"Stopped":fourStrokePhase(engineMotion?.crankAngle||0)+" stroke";
  if($("#auto").checked)rot.az+=dt*.25;
  exS+=(ex-exS)*Math.min(1,dt*6);const fit=(1+exS*.75)*(C.aspect<1?Math.min(1.9,1/C.aspect*.85+.15):1),rr=rot.r*fit,ty=tgt.y+exS*.6;
  C.position.set(tgt.x+rr*Math.sin(rot.az)*Math.cos(rot.el),ty+rr*Math.sin(rot.el),tgt.z+rr*Math.cos(rot.az)*Math.cos(rot.el));C.lookAt(tgt.x,ty,tgt.z);
