@@ -51,3 +51,11 @@ test("opens the intake valve and rotates camshaft at half crank speed",()=>{
   assert.ok(intakeValve.position.y<1.35);
   assert.ok(Math.abs(intakeCam.rotation.x+Math.PI/4)<1e-8);
 });
+
+test("crank pin begins on the same radius used by the connecting-rod calculation", () => {
+  const bank = new Group();
+  createEngineMotion(THREE, [bank], { n: 4, v: 0 });
+  const crankPin = bank.children[0].children[1].children[2];
+  assert.equal(crankPin.position.y, 0.17);
+  assert.equal(crankPin.position.z, 0);
+});
