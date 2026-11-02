@@ -55,6 +55,12 @@ export function SiteNav() {
             {l.label}
           </Link>
         ))}
+        <Link
+          to="/onboarding"
+          className="whitespace-nowrap rounded-sm bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+        >
+          Start Training
+        </Link>
       </nav>
     </header>
   );
