@@ -155,7 +155,7 @@ export class ElmWifi {
     if (this.pending) { clearTimeout(this.pending.timer); this.pending.reject(new Error(error || 'Adapter disconnected.')); this.pending = null; }
     this.status = 'disconnected'; this.buffer = '';
     // Keep the last confirmed scan for reference, but it is stale once the adapter disconnects.
-    this.samples={};this.history={};this.monitoring=true;this.syncing=false;
-    this.notify(); this.error = error; this.notify();
+    this.samples={};this.history={};this.monitoring=true;this.syncing=false;this.error = error;
+    this.notify(); this.notify();
   }
 }
