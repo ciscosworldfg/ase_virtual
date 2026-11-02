@@ -1,0 +1,29 @@
+version: 2.1
+
+jobs:
+  verify:
+    docker:
+      - image: cimg/node:22.14
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Install Bun
+          command: npm install --global bun
+      - run:
+          name: Install locked dependencies
+          command: bun install --frozen-lockfile
+      - run:
+          name: Run automated tests
+          command: bun run test
+      - run:
+          name: Run lint
+          command: bun run lint
+      - run:
+          name: Build production application
+          command: bun run build
+
+workflows:
+  verify-on-push:
+    jobs:
+      - verify
