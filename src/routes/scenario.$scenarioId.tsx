@@ -28,10 +28,10 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Scenario unavailable | ASE Virtual" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Scenario unavailable | AISE Virtual" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.title} | ASE Virtual diagnostic session`;
+    const title = `${loaderData.title} | AISE Virtual diagnostic session`;
     return {
       meta: [
         { title },
