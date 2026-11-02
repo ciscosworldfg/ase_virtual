@@ -52,6 +52,7 @@ export function createComponentGeometry(THREE, palette) {
       g=group(box(x*.93,y*.8,z*.9,type==='cov'?'metal':type==='pan'?'darkMetal':'metal'),box(x,.045,z,'darkMetal',0,-y*.42,0));
       for(let j=0;j<6;j++)g.add(box(x*.83,.025,.025,'metal',0,y*.41,(j-2.5)*z/8));
       bolts(g,x,z,y*.44);
+      if(type==='block')g.traverse(m=>{if(m.isMesh){m.material.transparent=true;m.material.opacity=.42;m.material.depthWrite=false}});
       if(type==='cov')for(let j=0;j<3;j++)g.add(ring(.11,.025,'darkMetal',(j-1)*x/3,y*.4,0));
       if(type==='cov'&&id==='cov0')g.add(cyl(.13,.08,'plastic',x*.31,y*.48,z*.23),box(.15,.055,.035,'darkMetal',x*.31,y*.54,z*.23));
       if(type==='head')for(let j=0;j<3;j++)for(const side of [-1,1])g.add(ring(.12,.026,'darkMetal',(j-1)*x/3,0,side*z*.46,'z'));
