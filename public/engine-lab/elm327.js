@@ -49,6 +49,7 @@ export class ElmWifi {
   codes = [];
   telemetry = {};
   lastSuccessfulScan = null;
+  scanFresh = false;
   error = '';
   syncing = false;
   monitoring = true;
@@ -89,7 +90,7 @@ export class ElmWifi {
         const raw = await this.send(command);
         if (/ERROR|\?|UNABLE TO CONNECT/i.test(raw)) throw new Error('Adapter initialization failed.');
       }
-      this.status = 'connected'; this.notify();
+      this.status = 'connected'; this.scanFresh = false; this.notify();
       await this.sync();
       this.schedule();
     } catch (error) { this.disconnect(error instanceof Error ? error.message : 'Connection failed.'); throw error; }
@@ -124,7 +125,8 @@ export class ElmWifi {
         at: this.syncedAt,
         mil: this.telemetry.mil ?? null,
         codes: this.codes.map(item => ({ ...item })),
-      }; this.error = '';
+      };
+      this.scanFresh = true; this.error = '';
     } catch (error) { if(generation===this.generation)this.error = error instanceof Error ? error.message : 'DTC sync failed.'; throw error; }
     finally { if(generation===this.generation){this.syncing = false; this.notify();} }
   }
@@ -153,7 +155,7 @@ export class ElmWifi {
     clearTimeout(this.timer); this.timer = null;
     const socket = this.socket; this.socket = null; socket?.close();
     if (this.pending) { clearTimeout(this.pending.timer); this.pending.reject(new Error(error || 'Adapter disconnected.')); this.pending = null; }
-    this.status = 'disconnected'; this.buffer = '';
+    this.status = 'disconnected'; this.scanFresh = false; this.buffer = '';
     // Keep the last confirmed scan for reference, but it is stale once the adapter disconnects.
     this.samples={};this.history={};this.monitoring=true;this.syncing=false;this.error = error;
     this.notify(); this.notify();
