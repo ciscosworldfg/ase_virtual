@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DiyRouteImport } from './routes/diy'
+import { Route as GarageRouteImport } from './routes/garage'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ScenariosRouteImport } from './routes/scenarios'
 import { Route as StudyRouteImport } from './routes/study'
@@ -30,6 +31,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const DiyRoute = DiyRouteImport.update({
   id: '/diy',
   path: '/diy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GarageRoute = GarageRouteImport.update({
+  id: '/garage',
+  path: '/garage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/diy': typeof DiyRoute
+  '/garage': typeof GarageRoute
   '/onboarding': typeof OnboardingRoute
   '/scenarios': typeof ScenariosRoute
   '/study': typeof StudyRoute
@@ -87,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/diy'
+    | '/garage'
     | '/onboarding'
     | '/scenarios'
     | '/study'
@@ -115,6 +123,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   DiyRoute: typeof DiyRoute
+  GarageRoute: typeof GarageRoute
   OnboardingRoute: typeof OnboardingRoute
   ScenariosRoute: typeof ScenariosRoute
   StudyRoute: typeof StudyRoute
@@ -142,6 +151,13 @@ declare module '@tanstack/react-router' {
       path: '/diy'
       fullPath: '/diy'
       preLoaderRoute: typeof DiyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garage': {
+      id: '/garage'
+      path: '/garage'
+      fullPath: '/garage'
+      preLoaderRoute: typeof GarageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -179,6 +195,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   DiyRoute: DiyRoute,
+  GarageRoute: GarageRoute,
   OnboardingRoute: OnboardingRoute,
   ScenariosRoute: ScenariosRoute,
   StudyRoute: StudyRoute,
