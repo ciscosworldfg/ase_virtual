@@ -15,6 +15,19 @@ export function valveLift(cycleDeg, phase = "intake") {
   return 0.11 * Math.sin(((cycle - start) / (end - start)) * Math.PI);
 }
 
+export function engineCylinderTiming(engine) {
+  const pistonOffsets = engine.n === 6 && engine.v
+    ? [0, 240, 480, 120, 360, 600]
+    : [0, 180, 180, 0];
+  const fourStrokeOffsets = engine.n === 6 && engine.v
+    ? pistonOffsets
+    : [0, 180, 540, 360];
+  return Array.from({ length: engine.n }, (_, index) => ({
+    pistonOffset: pistonOffsets[index] ?? index * (720 / engine.n),
+    cycleOffset: fourStrokeOffsets[index] ?? index * (720 / engine.n),
+  }));
+}
+
 export function fourStrokePhase(cycleDeg) {
   const phase = ((cycleDeg % 720) + 720) % 720;
   if (phase < 180) return "Intake";
@@ -32,6 +45,7 @@ export function createEngineMotion(THREE, frames, engine) {
     dark: new THREE.MeshStandardMaterial({ color: 0x394655, metalness: 0.75, roughness: 0.35 }),
   };
   const perBank = engine.n / frames.length;
+  const timing = engineCylinderTiming(engine);
   const cylinders = [];
   const camshafts = [];
   const crankRadius = 0.17;
@@ -63,12 +77,7 @@ export function createEngineMotion(THREE, frames, engine) {
     for (let j = 0; j < perBank; j++) {
       const x = j - (perBank - 1) / 2;
       const cylinderIndex = bank * perBank + j;
-      const pistonOffset = engine.v
-        ? (bank * 120 + j * 240)
-        : ([0, 180, 180, 0][j] ?? j * 180);
-      const cycleOffset = engine.v
-        ? pistonOffset
-        : ([0, 360, 180, 540][j] ?? j * (720 / engine.n));
+      const { pistonOffset, cycleOffset } = timing[cylinderIndex];
 
       const liner = new THREE.Mesh(
         new THREE.CylinderGeometry(0.205, 0.205, 0.92, 24, 1, true),
@@ -95,7 +104,7 @@ export function createEngineMotion(THREE, frames, engine) {
       const webB = makeCylinder(0.19, 0.09, material.dark, "x");
       webB.position.set(0.13, 0, 0);
       const crankPin = makeCylinder(0.055, 0.32, material.steel, "x");
-      crankPin.position.z = crankRadius;
+      crankPin.position.y = crankRadius;
       crankWebs.add(webA, webB, crankPin);
       crankWebs.position.set(x, 0, 0);
       crank.add(crankWebs);
