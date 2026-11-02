@@ -28,7 +28,10 @@ export const Route = createFileRoute("/scenario/$scenarioId")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Scenario unavailable | AISE Virtual" }, { name: "robots", content: "noindex" }],
+        meta: [
+          { title: "Scenario unavailable | AISE Virtual" },
+          { name: "robots", content: "noindex" },
+        ],
       };
     }
     const title = `${loaderData.title} | AISE Virtual diagnostic session`;
@@ -55,7 +58,6 @@ const BASE_STAGES = [
 ] as const;
 
 type Stage = string;
-
 
 function Session() {
   const { scenarioId } = Route.useParams();
@@ -155,7 +157,10 @@ function Session() {
             >
               Resume
             </button>
-            <Link to="/scenarios" className="rounded-sm bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+            <Link
+              to="/scenarios"
+              className="rounded-sm bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
               Back to library
             </Link>
           </div>
@@ -247,8 +252,18 @@ function Session() {
 
             {stage === "service" && (
               <>
-                <ServiceRoleplay scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
-                <EstimateBuilder scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
+                <ServiceRoleplay
+                  scenario={scenario}
+                  vehicle={vehicle}
+                  data={data}
+                  toolsUsed={toolsUsed}
+                />
+                <EstimateBuilder
+                  scenario={scenario}
+                  vehicle={vehicle}
+                  data={data}
+                  toolsUsed={toolsUsed}
+                />
               </>
             )}
             {stage === "diagnose" &&
@@ -265,15 +280,27 @@ function Session() {
           </div>
 
           <aside className="space-y-4">
-            <MasterTechPanel scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
-            <SymptomAssessment scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
+            <MasterTechPanel
+              scenario={scenario}
+              vehicle={vehicle}
+              data={data}
+              toolsUsed={toolsUsed}
+            />
+            <SymptomAssessment
+              scenario={scenario}
+              vehicle={vehicle}
+              data={data}
+              toolsUsed={toolsUsed}
+            />
             <div className="panel-instrument p-4">
               <span className="label-tech">Evidence collected</span>
               <ul className="mt-3 space-y-1.5 text-sm">
                 {STAGES.filter((s) => s.id !== "diagnose" && s.id !== "service").map((s) => (
                   <li key={s.id} className="flex items-center justify-between">
                     <span className="text-muted-foreground">{s.label}</span>
-                    <span className={toolsUsed.includes(s.id) ? "text-ok" : "text-muted-foreground"}>
+                    <span
+                      className={toolsUsed.includes(s.id) ? "text-ok" : "text-muted-foreground"}
+                    >
                       {toolsUsed.includes(s.id) ? "collected" : "pending"}
                     </span>
                   </li>
