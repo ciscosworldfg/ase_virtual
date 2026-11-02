@@ -7,13 +7,13 @@ import { SCENARIOS, scenarioById } from "@/lib/sim/scenarios";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Training dashboard | ASE Virtual" },
+      { title: "Training dashboard | AISE Virtual" },
       {
         name: "description",
         content:
-          "Track overall automotive skill, diagnostic accuracy, ASE area progress and recommended training in ASE Virtual.",
+          "Track overall automotive skill, diagnostic accuracy, ASE area progress and recommended training in AISE Virtual.",
       },
-      { property: "og:title", content: "Training dashboard | ASE Virtual" },
+      { property: "og:title", content: "Training dashboard | AISE Virtual" },
       {
         property: "og:description",
         content: "Skill score, ASE A1–A8 + L1 progress and weak-area tracking.",
@@ -53,7 +53,7 @@ function Dashboard() {
         <section className="mt-10">
           <h2 className="font-display text-xl font-bold uppercase tracking-wide">ASE progress</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            ASE-aligned preparation. ASE Virtual is not affiliated with or endorsed by ASE and does
+            ASE-aligned preparation. AISE Virtual is not affiliated with or endorsed by ASE and does
             not issue certification.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
