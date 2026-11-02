@@ -11,6 +11,7 @@ import { ToolBench } from "@/components/ase/ToolBench";
 import { AnswerPanel } from "@/components/ase/AnswerPanel";
 import { MasterTechPanel } from "@/components/ase/MasterTechPanel";
 import { EstimateBuilder } from "@/components/ase/EstimateBuilder";
+import { AutoShopOS } from "@/components/ase/AutoShopOS";
 import { ServiceRoleplay } from "@/components/ase/ServiceRoleplay";
 import { SymptomAssessment } from "@/components/ase/SymptomAssessment";
 import { scenarioById } from "@/lib/sim/scenarios";
@@ -71,7 +72,7 @@ function Session() {
       }).map((s) => ({ id: s.id as string, label: s.label as string })),
       ...toolStages,
       { id: "diagnose", label: "Diagnosis" },
-      { id: "service", label: "Service desk" },
+      { id: "service", label: "AutoShopOS" },
     ];
   }, [scenario]);
 
@@ -240,10 +241,10 @@ function Session() {
             )}
 
             {stage === "service" && (
-              <>
+              <AutoShopOS>
                 <ServiceRoleplay scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
                 <EstimateBuilder scenario={scenario} vehicle={vehicle} data={data} toolsUsed={toolsUsed} />
-              </>
+              </AutoShopOS>
             )}
             {stage === "diagnose" &&
               (result ? (
