@@ -2,7 +2,7 @@
 
 The dashboard reads stored and pending engine/emissions codes, MIL status, RPM, coolant temperature, adapter voltage, speed, calculated load, throttle position, manifold pressure, intake temperature and bank-1 short/long fuel trims. Measurements depend on vehicle support; unavailable replies show no value, never a simulated substitute. Trends remain in memory only. Pause freezes monitoring; resume starts fresh reads. DTCs refresh automatically about every 15 seconds between polling sweeps, or with Sync DTCs. Actual refresh speed depends on the adapter. Re-download the updated bridge to allow these additional read-only measurements.
 
-It never erases ECU codes. “Clear scan” clears only the screen. ABS, airbag and manufacturer-specific modules are not covered by standard OBD-II modes 03/07. Permanent codes and readiness are not read.
+It never erases ECU codes. “Clear scan” clears only the screen. The current generic bridge reads standard powertrain/emissions codes (Modes 03/07) and supported Mode 01 PIDs only. It does not scan ABS/brake, airbag/SRS, chassis/body, or dedicated transmission-control modules. Some transmission-related P-codes may appear only when the vehicle PCM exposes them through standard OBD-II. A full transmission or ABS scan requires vehicle-specific enhanced diagnostics and is not implemented here. Permanent codes and readiness are not read.
 
 ## Local computer bridge
 
