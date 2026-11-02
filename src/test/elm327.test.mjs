@@ -51,6 +51,19 @@ test("returns null for unavailable or malformed sensor responses", () => {
   assert.equal(decodeMeasurement("41 0C GG HH", "010C"), null);
 });
 
+test("failed DTC refresh preserves the last confirmed scan and marks it stale", async () => {
+  const adapter = new ElmWifi();
+  adapter.status = "connected";
+  const previous = { at: new Date(0), mil: false, codes: [{ code: "P0101", status: "stored" }] };
+  adapter.lastSuccessfulScan = previous;
+  adapter.scanFresh = true;
+  adapter.send = async () => { throw new Error("simulated refresh failure"); };
+  await assert.rejects(adapter.sync(), /simulated refresh failure/);
+  assert.equal(adapter.lastSuccessfulScan, previous);
+  assert.equal(adapter.scanFresh, false);
+  assert.match(adapter.error, /simulated refresh failure/);
+});
+
 test("decodes adapter voltage separately from ECU PIDs", () => {
   assert.equal(decodeMeasurement("12.6V", "ATRV"), 12.6);
 });
