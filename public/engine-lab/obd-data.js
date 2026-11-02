@@ -7,7 +7,7 @@ export const MEASUREMENTS = [
   { command:'0104', key:'load', label:'Calculated load', unit:'%', max:100, bytes:1, decode:a=>a*100/255 },
   { command:'0111', key:'throttle', label:'Throttle position', unit:'%', max:100, bytes:1, decode:a=>a*100/255 },
   { command:'010B', key:'map', label:'Manifold pressure', unit:'kPa', max:255, bytes:1, decode:a=>a },
-  { command:'010F', key:'iat', label:'Intake air', unit:'°C', max:160, bytes:1, decode:a=>a-40 },
+  { command:'010F', key:'iat', label:'Intake air', unit:'°C / °F', max:160, bytes:1, decode:a=>a-40 },
   { command:'0106', key:'stft', label:'Short fuel trim · B1', unit:'%', max:100, bytes:1, decode:a=>(a-128)*100/128 },
   { command:'0107', key:'ltft', label:'Long fuel trim · B1', unit:'%', max:100, bytes:1, decode:a=>(a-128)*100/128 },
 ];
