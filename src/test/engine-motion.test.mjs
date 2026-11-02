@@ -46,7 +46,7 @@ test("opens the intake valve and rotates camshaft at half crank speed",()=>{
   const bank=new Group();
   const motion=createEngineMotion(THREE,[bank],{n:4,v:0});
   const intakeCam=bank.children[1];
-  const intakeValve=bank.children[7];
+  const intakeValve=bank.children[6];
   motion.update(0.02,750); // 90 crank degrees
   assert.ok(intakeValve.position.y<1.35);
   assert.ok(Math.abs(intakeCam.rotation.x+Math.PI/4)<1e-8);
