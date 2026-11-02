@@ -111,7 +111,7 @@ export class ElmWifi {
   async sync() {
     if (this.syncing || this.status !== 'connected') return;
     const generation=this.generation;
-    this.syncing = true; this.notify();
+    this.syncing = true; this.scanFresh = false; this.notify();
     try {
       const stored = decodeDtcResponse(await this.send('03'), '03');
       const pending = decodeDtcResponse(await this.send('07'), '07');
