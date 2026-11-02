@@ -6,13 +6,13 @@ import { SiteNav } from "@/components/ase/SiteNav";
 export const Route = createFileRoute("/diy")({
   head: () => ({
     meta: [
-      { title: "DIY Garage — beginner car maintenance lessons | ASE Virtual" },
+      { title: "DIY Garage — beginner car maintenance lessons | AISE Virtual" },
       {
         name: "description",
         content:
           "Step-by-step beginner lessons: check your oil and coolant, tire pressure, jump-starting, wiper blades and basic brake inspection — with safety warnings first.",
       },
-      { property: "og:title", content: "DIY Garage | ASE Virtual" },
+      { property: "og:title", content: "DIY Garage | AISE Virtual" },
       {
         property: "og:description",
         content: "Plain-language, safety-first car maintenance lessons for complete beginners.",
