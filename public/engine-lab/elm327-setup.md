@@ -29,7 +29,7 @@ Some browsers block plain `ws://` connections even to localhost when the lab is 
 ELM_TLS_CERT=/path/cert.pem ELM_TLS_KEY=/path/key.pem ELM_BIND=0.0.0.0 node elm327-bridge.mjs 192.168.0.10 35000 35001
 ```
 
-Then use `wss://your-certificate-hostname:35001`. Keep it on a private network; never expose it to the internet. Plain mode binds to loopback only. The default allowed website origins are this app’s published/preview addresses and localhost:8080. For a different website address, set `ELM_ALLOWED_ORIGINS` to a comma-separated list of exact trusted origins; never use a wildcard. TLS key files stay on your own computer.
+Then use `wss://your-certificate-hostname:35001`. Keep it on a private network; never expose it to the internet. Plain mode binds to loopback only. The default allowed website origins include the original Garage Lovable app, the current AISE integration preview (https://francisco-garcia-git-integration-afe1f3-ciscosworld-s-projects.vercel.app), and localhost:8080. Production domains must be added explicitly with ELM_ALLOWED_ORIGINS after the final domain is confirmed. For a different website address, set `ELM_ALLOWED_ORIGINS` to a comma-separated list of exact trusted origins; never use a wildcard. TLS key files stay on your own computer.
 
 ## Interpretation
 
