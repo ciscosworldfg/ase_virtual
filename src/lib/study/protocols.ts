@@ -143,8 +143,7 @@ export const PROTOCOLS: Protocol[] = [
       { step: "Doctrine", action: "A Master Tech traces the cascade backward. A parts-swapper only fixes the piston — and the car comes back." },
     ],
     proof: "Engine layer model: Layer 1 Air/Valve logic (misfires, power loss) · Layer 2 Synchronization (timing snap → destruction) · Layer 3 Combustion core (compression loss, overheating) · Layer 4 Lubrication/thermal (seizure).",
-  },,
-
+  },
   {
     id: "case-honda-p0172-p0175",
     code: "CASE-A8-01",
