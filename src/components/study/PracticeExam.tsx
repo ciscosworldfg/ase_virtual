@@ -200,7 +200,9 @@ export function PracticeExam() {
 
         {picked !== null && (
           <div className="mt-4 rounded-sm border border-border bg-background p-4">
-            <p className="label-tech text-primary">{correct ? "Correct" : "Not proven — read the proof"}</p>
+            <p className="label-tech text-primary">
+              {correct ? "Correct — diagnostic reasoning" : "Incorrect — review the reasoning"}
+            </p>
             <p className="mt-1.5 text-sm text-muted-foreground">{q.rationale}</p>
           </div>
         )}

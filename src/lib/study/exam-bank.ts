@@ -51,11 +51,18 @@ const A1: ExamOption[] = [
   { id: "D", text: "A blown head gasket" },
 ];
 
-const ABCD: ExamOption[] = [
-  { id: "A", text: "A" },
-  { id: "B", text: "B" },
-  { id: "C", text: "C" },
-  { id: "D", text: "D" },
+const A6_OHMS_LAW: ExamOption[] = [
+  { id: "A", text: "2 amps" },
+  { id: "B", text: "4 amps" },
+  { id: "C", text: "6 amps" },
+  { id: "D", text: "24 amps" },
+];
+
+const A8_FUEL_TRIM: ExamOption[] = [
+  { id: "A", text: "Adding fuel to correct a lean condition detected by the PCM" },
+  { id: "B", text: "Removing fuel because the PCM has detected a rich condition" },
+  { id: "C", text: "Disabling the oxygen sensors because the engine is cold" },
+  { id: "D", text: "Reporting that injector pulse width is exactly 25 milliseconds" },
 ];
 
 export const EXAM_QUESTIONS: ExamQuestion[] = [
@@ -154,8 +161,8 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "Both are true. The hydraulic logic: the master cylinder creates the pressure, and it is lost either to compressible air or past a bypassing cup. Bleed first; if the pedal still sinks, prove the master cylinder."),
 
   // ---------- A6 Electrical ----------
-  q("a6-1", "A6", "A circuit has 12 volts and 2 ohms of resistance. What is the current flow?", ABCD, "C",
-    "Ohm's Law: I = V / R. 12 / 2 = 6 amps. The exam always includes Ohm's Law arithmetic — do it, don't guess."),
+  q("a6-1", "A6", "A circuit has 12 volts and 2 ohms of resistance. What is the current flow?", A6_OHMS_LAW, "C",
+    "Use Ohm's Law: I = V ÷ R = 12 V ÷ 2 Ω = 6 A. Choose the option that matches the calculated current; do not confuse current with voltage or resistance."),
   tab("a6-2", "A6",
     "A starter clicks audibly but does not crank the engine. A voltage drop test on the positive battery cable reads 2.5 V during cranking.",
     "The starter solenoid is engaging but the motor is internally seized — the starter has failed.",
@@ -186,8 +193,8 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     "Both statements are true. The blend door governs cabin temperature, and the refrigerant cycle order is correct — either fault can produce warm vents. That is exactly why the Tech A/B gate evaluates each statement independently."),
 
   // ---------- A8 Engine Performance ----------
-  q("a8-1", "A8", "A scan tool shows a Long Term Fuel Trim (LTFT) of +25%. This indicates the PCM is:", ABCD, "A",
-    "Adding fuel to compensate for a lean condition. Positive trim = adding fuel (vacuum leak is the classic cause); negative = subtracting. ±10% under load is the sign-off threshold — +25% is far out of spec."),
+  q("a8-1", "A8", "A scan tool shows a Long Term Fuel Trim (LTFT) of +25%. This indicates the PCM is:", A8_FUEL_TRIM, "A",
+    "A positive LTFT means the PCM has learned to add fuel because feedback indicates a lean condition. +25% is a substantial correction, not proof of one failed part. Compare STFT and LTFT at idle and raised RPM, check for unmetered air, verify MAF data, and test fuel pressure against the vehicle manufacturer's specification."),
   tab("a8-2", "A8",
     "An engine idles perfectly but misfires severely under heavy acceleration and high load.",
     "A weak ignition coil is failing to push a spark across the plug gap under high cylinder pressures.",
