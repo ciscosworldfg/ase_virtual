@@ -143,14 +143,7 @@ export const PROTOCOLS: Protocol[] = [
       { step: "Doctrine", action: "A Master Tech traces the cascade backward. A parts-swapper only fixes the piston — and the car comes back." },
     ],
     proof: "Engine layer model: Layer 1 Air/Valve logic (misfires, power loss) · Layer 2 Synchronization (timing snap → destruction) · Layer 3 Combustion core (compression loss, overheating) · Layer 4 Lubrication/thermal (seizure).",
-  },
-];
-
-/** The sign-off thresholds every diagnosis is judged against. */
-export const SIGNOFF_THRESHOLDS = [
-  { system: "Electrical (A6)", test: "Identify voltage drop", threshold: "DMM reading < 0.5 V" },
-  { system: "Engine mechanical (A1)", test: "Relative compression", threshold: "Waveform / percentage variance < 10%" },
-  { system: "Fuel/air (A8)", test: "Mixture control", threshold: "Combined STFT/LTFT within ±10% under load" },,
+  },,
 
   {
     id: "case-honda-p0172-p0175",
@@ -171,5 +164,11 @@ export const SIGNOFF_THRESHOLDS = [
     ],
     proof: "Evidence in this case: P0172 and P0175 were reported as present on Car Scanner and the YM519 handheld; the MIL was ON and the handheld status screen reported two codes. Root cause remains undetermined. Required next evidence: freeze-frame data, labeled STFT/LTFT values for both banks, MAF/MAP and ECT plausibility, and fuel-pressure/purge testing against Honda service specifications. Do not diagnose two failed oxygen sensors from these codes alone. Safety: stop testing and avoid driving if the MIL flashes, the engine misfires severely, or raw-fuel odor/overheating is present; an active misfire or rich condition can damage the catalytic converters."
   },
+];
 
+/** The sign-off thresholds every diagnosis is judged against. */
+export const SIGNOFF_THRESHOLDS = [
+  { system: "Electrical (A6)", test: "Identify voltage drop", threshold: "DMM reading < 0.5 V" },
+  { system: "Engine mechanical (A1)", test: "Relative compression", threshold: "Waveform / percentage variance < 10%" },
+  { system: "Fuel/air (A8)", test: "Mixture control", threshold: "Combined STFT/LTFT within ±10% under load" }
 ];
