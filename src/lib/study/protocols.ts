@@ -150,5 +150,26 @@ export const PROTOCOLS: Protocol[] = [
 export const SIGNOFF_THRESHOLDS = [
   { system: "Electrical (A6)", test: "Identify voltage drop", threshold: "DMM reading < 0.5 V" },
   { system: "Engine mechanical (A1)", test: "Relative compression", threshold: "Waveform / percentage variance < 10%" },
-  { system: "Fuel/air (A8)", test: "Mixture control", threshold: "Combined STFT/LTFT within ±10% under load" },
+  { system: "Fuel/air (A8)", test: "Mixture control", threshold: "Combined STFT/LTFT within ±10% under load" },,
+
+  {
+    id: "case-honda-p0172-p0175",
+    code: "CASE-A8-01",
+    title: "Case Study: Both Banks Running Rich (P0172 + P0175)",
+    phase: "A8 · Engine Performance / OBD-II diagnosis",
+    source: "Field case study · 2005 Honda Pilot EX · 3.5L J35A6 V6 · Car Scanner + YM519 scan-tool observations",
+    summary:
+      "A 2005 Honda Pilot reports P0172 (System Too Rich, Bank 1) and P0175 (System Too Rich, Bank 2). The codes were observed with both a phone-based scan tool and a YM519 handheld scanner. A two-bank rich condition calls for testing shared inputs and fuel-delivery causes before replacing oxygen sensors or other parts. The codes identify the detected condition, not its root cause.",
+    steps: [
+      { step: "1 · Verify and preserve evidence", action: "Confirm the exact vehicle and engine. Record stored, pending, and permanent DTCs separately; note MIL status and whether it is steady or flashing. Do not clear codes before saving freeze-frame data and readiness status." },
+      { step: "2 · Read freeze-frame conditions", action: "Capture RPM, ECT, IAT, load, vehicle speed, MAF (if equipped), MAP, fuel-system status, and STFT/LTFT for both banks at the moment the fault was stored. Record units and bank/sensor labels." },
+      { step: "3 · Compare fuel trims", action: "With the engine fully warm and in closed loop, record STFT and LTFT for Bank 1 and Bank 2 at stable idle, then at a safe steady elevated RPM in Park/Neutral. Add STFT and LTFT for each bank to estimate total correction. Strong negative correction on both banks supports a shared rich-mixture concern; it does not identify the failed part." },
+      { step: "4 · Check shared air and temperature inputs", action: "Inspect the intake duct between the air filter and throttle body for damage, loose clamps, restrictions, or contamination. Check MAF plausibility against engine speed and load, and compare ECT/IAT readings to actual ambient and engine temperature after a cold soak. Use vehicle-specific service information for specifications." },
+      { step: "5 · Test fuel delivery and purge", action: "Measure fuel pressure and residual pressure using the factory procedure and specification. Check for leaking injectors using an approved test. Test whether the EVAP purge valve seals when commanded closed; do not replace it based on the DTCs alone." },
+      { step: "6 · Evaluate exhaust feedback", action: "Review upstream air/fuel-ratio sensor or oxygen-sensor data using the correct Honda PID definitions and scan-tool support. A downstream oxygen-sensor voltage by itself does not prove the cause of a rich code. Check wiring, grounds, exhaust leaks, and sensor response before condemning a sensor." },
+      { step: "7 · Prove the repair", action: "Repair only the fault demonstrated by testing. Clear codes only after evidence is saved and repair is complete; run the required drive cycle, confirm fuel trims return toward normal, and verify that stored/pending codes do not return and readiness monitors complete." }
+    ],
+    proof: "Evidence in this case: P0172 and P0175 were reported as present on Car Scanner and the YM519 handheld; the MIL was ON and the handheld status screen reported two codes. Root cause remains undetermined. Required next evidence: freeze-frame data, labeled STFT/LTFT values for both banks, MAF/MAP and ECT plausibility, and fuel-pressure/purge testing against Honda service specifications. Do not diagnose two failed oxygen sensors from these codes alone. Safety: stop testing and avoid driving if the MIL flashes, the engine misfires severely, or raw-fuel odor/overheating is present; an active misfire or rich condition can damage the catalytic converters."
+  },
+
 ];
