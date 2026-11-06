@@ -37,7 +37,7 @@ export function ScanTool({
         <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
           OBD-II Scan Tool
         </span>
-        <span className="label-tech text-ok">Link established</span>
+        <div className="text-right"><span className="label-tech text-caution">SIMULATION MODE</span><p className="mt-1 text-[0.65rem] text-muted-foreground">Training data only — no physical OBD-II adapter connected.</p></div>
       </div>
 
       <div className="flex border-b border-border">
