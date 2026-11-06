@@ -16,7 +16,7 @@ export const Route = createFileRoute("/dashboard")({
       { property: "og:title", content: "Training dashboard | ASE Virtual" },
       {
         property: "og:description",
-        content: "Skill score, ASE A1–A8 + L1 progress and weak-area tracking.",
+        content: "Skill score, Level 1 A1–A8 progress and weak-area tracking.",
       },
     ],
   }),
@@ -25,7 +25,8 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { profile, loaded } = useProfile();
-  const s = summarize(profile.attempts);
+  const level1Attempts = profile.attempts.filter((attempt) => attempt.category !== "L1");
+  const s = summarize(level1Attempts);
 
   const weakest = ASE_CATEGORIES.map((c) => ({
     ...c,
@@ -61,7 +62,7 @@ function Dashboard() {
               const score = s.byCategory[c.id] ?? 0;
               const total = SCENARIOS.filter((sc) => sc.category === c.id).length;
               const completed = new Set(
-                profile.attempts.filter((a) => a.category === c.id).map((a) => a.scenarioId),
+                level1Attempts.filter((a) => a.category === c.id).map((a) => a.scenarioId),
               ).size;
               const pct = total ? Math.round((completed / total) * 100) : 0;
               return (
@@ -96,12 +97,12 @@ function Dashboard() {
               Recent scenarios
             </h2>
             <div className="mt-4 space-y-2">
-              {!loaded || profile.attempts.length === 0 ? (
+              {!loaded || level1Attempts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No sessions recorded yet. Run your first diagnosis to start scoring.
+                  No Level 1 sessions recorded yet. Complete an A1–A8 scenario to start scoring.
                 </p>
               ) : (
-                profile.attempts.slice(0, 6).map((a, i) => (
+                level1Attempts.slice(0, 6).map((a, i) => (
                   <div
                     key={`${a.scenarioId}-${i}`}
                     className="flex items-center justify-between rounded-sm border border-border bg-panel px-3 py-2"
