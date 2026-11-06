@@ -76,7 +76,7 @@ function Landing() {
             {[
               { k: "Simulated systems", v: "16" },
               { k: "Scoring dimensions", v: "6" },
-              { k: "ASE-aligned areas", v: "A1–A8 + L1" },
+              { k: "ASE-aligned areas", v: "A1–A8" },
             ].map((s) => (
               <div key={s.k} className="panel-instrument px-5 py-4">
                 <div className="readout text-2xl font-semibold text-primary">{s.v}</div>
