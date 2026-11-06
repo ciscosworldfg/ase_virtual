@@ -16,7 +16,7 @@ export const Route = createFileRoute("/dashboard")({
       { property: "og:title", content: "Training dashboard | ASE Virtual" },
       {
         property: "og:description",
-        content: "Skill score, ASE A1–A8 + L1 progress and weak-area tracking.",
+        content: "Skill score, Level 1 A1–A8 progress and weak-area tracking.",
       },
     ],
   }),
