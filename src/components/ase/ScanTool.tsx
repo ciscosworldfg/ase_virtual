@@ -59,7 +59,7 @@ export function ScanTool({
           <div className="space-y-3">
             {cleared ? (
               <p className="text-sm text-muted-foreground">
-                Codes cleared. Note that clearing without repair also erases freeze frame evidence.
+                Simulated codes cleared from this training scenario. No vehicle ECU was contacted.
               </p>
             ) : codes.length ? (
               codes.map((c) => (
@@ -83,7 +83,7 @@ export function ScanTool({
                 {confirming ? (
                   <div className="rounded-sm border border-caution/60 bg-caution/10 p-3">
                     <p className="text-sm">
-                      Clearing codes erases freeze frame data you may still need. Continue?
+                      Clear these simulated training codes? This does not communicate with or change a vehicle ECU.
                     </p>
                     <div className="mt-3 flex gap-2">
                       <button
@@ -93,7 +93,7 @@ export function ScanTool({
                         }}
                         className="rounded-sm bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground"
                       >
-                        Clear codes
+                        Clear simulated codes
                       </button>
                       <button
                         onClick={() => setConfirming(false)}
