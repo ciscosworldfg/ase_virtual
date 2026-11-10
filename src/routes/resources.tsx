@@ -5,7 +5,7 @@ import { SiteNav } from "@/components/ase/SiteNav";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({ meta: [
-    { title: "Automotive Resources | LAT" },
+    { title: "Automotive Resources | AISE Virtual" },
     { name: "description", content: "Vehicle recalls, technical service information, parts research, repair price references, and professional shop tools." },
   ]}),
   component: AutomotiveResources,
@@ -26,7 +26,7 @@ function OutLink({ href, children }: { href: string; children: ReactNode }) {
 }
 function AutomotiveResources() {
   return <div className="min-h-screen"><SiteNav /><main className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
-    <p className="label-tech text-primary">LAT · REFERENCE DESK</p>
+    <p className="label-tech text-primary">AISE VIRTUAL · REFERENCE DESK</p>
     <h1 className="mt-3 font-display text-3xl font-bold uppercase tracking-wide sm:text-5xl">Automotive Resources</h1>
     <p className="mt-4 max-w-3xl text-muted-foreground">Start with official safety information, research parts and repair costs, and find professional shop tools. External websites maintain their own data, prices, and terms.</p>
     <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

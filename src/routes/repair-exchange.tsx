@@ -5,7 +5,7 @@ import { SiteNav } from "@/components/ase/SiteNav";
 
 export const Route = createFileRoute("/repair-exchange")({
   head: () => ({ meta: [
-    { title: "Technician Repair Exchange | LAT" },
+    { title: "Technician Repair Exchange | AISE Virtual" },
     { name: "description", content: "Submit real-world automotive diagnostic cases for review." },
   ]}),
   component: RepairExchange,
@@ -18,11 +18,11 @@ function RepairExchange() {
     const f = new FormData(event.currentTarget);
     const fields = ["Year", "Make", "Model", "Engine", "Mileage", "Submitter type", "DTCs", "Complaint and symptoms", "Tests and measured evidence", "Diagnostic finding", "Repair performed", "Post-repair verification"];
     const body = fields.map((label) => label + ": " + String(f.get(label) || "Not provided")).join("\n\n");
-    window.location.href = "mailto:inditechreview@gmail.com?subject=" + encodeURIComponent("LAT Technician Repair Exchange submission") + "&body=" + encodeURIComponent(body);
+    window.location.href = "mailto:inditechreview@gmail.com?subject=" + encodeURIComponent("AISE Virtual Technician Repair Exchange submission") + "&body=" + encodeURIComponent(body);
     setNotice("Your email app should open with the case details. This is not a database submission; cases are not published automatically and require review.");
   }
   return <div className="min-h-screen"><SiteNav /><main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-    <p className="label-tech text-primary">LAT · COMMUNITY KNOWLEDGE</p>
+    <p className="label-tech text-primary">AISE VIRTUAL · COMMUNITY KNOWLEDGE</p>
     <h1 className="mt-3 font-display text-3xl font-bold uppercase tracking-wide sm:text-5xl">Technician Repair Exchange</h1>
     <p className="mt-4 max-w-3xl text-muted-foreground">Share the actual diagnostic process—not just the part replaced. Help others learn from real cases, test results, and verified repairs.</p>
     <div className="mt-6 rounded-sm border border-signal/40 bg-panel p-4 text-sm leading-6"><ShieldAlert className="mr-2 inline h-4 w-4 text-primary" aria-hidden="true" /><strong>Privacy:</strong> Do not submit VINs, license plates, customer names, addresses, phone numbers, repair-order numbers, or confidential information.</div>

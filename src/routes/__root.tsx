@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Learning Automotive Technology (LAT) — Automotive Diagnostic & Skills Studio" },
+      { title: "AISE Virtual — Automotive Diagnostic Training" },
       {
         name: "description",
         content:
           "An AI-powered virtual automotive diagnostic laboratory: test drive, scan, measure and prove the root cause.",
       },
-      { name: "author", content: "Learning Automotive Technology (LAT)" },
-      { property: "og:title", content: "Learning Automotive Technology (LAT) — Diagnose. Test. Learn. Master." },
+      { name: "author", content: "AISE Virtual" },
+      { property: "og:title", content: "AISE Virtual — Diagnose. Test. Learn. Master." },
       {
         property: "og:description",
         content:
